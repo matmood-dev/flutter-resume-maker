@@ -23,179 +23,54 @@ class TemplateSelectionScreen extends ConsumerStatefulWidget {
 
 class _TemplateSelectionScreenState
     extends ConsumerState<TemplateSelectionScreen> {
-  int _selectedIndex = 0;
-  bool _isGenerating = false;
+  bool _isGenerating = true;
+  Uint8List? _pdfBytes;
+  String? _error;
 
-  static const _templates = [
-    (
-      name: 'Modern',
-      category: 'Two-Column',
-      color: Color(0xFF76C8FF),
-      icon: Icons.view_column_outlined,
-    ),
-    (
-      name: 'Professional',
-      category: 'Formal',
-      color: Color(0xFF1A1A2E),
-      icon: Icons.business_center_outlined,
-    ),
-    (
-      name: 'Creative',
-      category: 'Sidebar',
-      color: Color(0xFFFF9800),
-      icon: Icons.dashboard_outlined,
-    ),
-    (
-      name: 'Minimal',
-      category: 'Clean',
-      color: Color(0xFF9E9E9E),
-      icon: Icons.article_outlined,
-    ),
-    (
-      name: 'Executive',
-      category: 'Elegant',
-      color: Color(0xFF9C7CFF),
-      icon: Icons.workspace_premium_outlined,
-    ),
-    (
-      name: 'ATS Friendly',
-      category: 'Simple',
-      color: Color(0xFF424242),
-      icon: Icons.description_outlined,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _generatePdf();
+  }
 
   Future<void> _generatePdf() async {
-    setState(() => _isGenerating = true);
+    setState(() {
+      _isGenerating = true;
+      _error = null;
+    });
 
     try {
-      final pdfBytes = await PdfService.generateResumePdf(
-        widget.resume,
-        _templates[_selectedIndex].name,
-      );
+      final pdfBytes = await PdfService.generateResumePdf(widget.resume);
 
       if (mounted) {
-        await Printing.layoutPdf(
-          onLayout: (format) async => pdfBytes,
-          name: '${widget.resume.title}.pdf',
-        );
-
-        if (mounted) {
-          _showDownloadShareSheet(pdfBytes);
-        }
+        setState(() {
+          _pdfBytes = pdfBytes;
+          _isGenerating = false;
+        });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error generating PDF: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        setState(() {
+          _error = e.toString();
+          _isGenerating = false;
+        });
       }
-    } finally {
-      if (mounted) setState(() => _isGenerating = false);
     }
   }
 
-  void _showDownloadShareSheet(Uint8List pdfBytes) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const Gap(20),
-              Text('PDF Generated', style: AppTextStyles.headlineSmall),
-              const Gap(4),
-              Text(
-                'Preview and download your resume',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textGrey,
-                ),
-              ),
-              const Gap(24),
-              ListTile(
-                leading: const Icon(Icons.visibility, color: AppColors.primary),
-                title: Text('Preview', style: AppTextStyles.titleSmall),
-                subtitle: Text(
-                  'View the generated PDF',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textGrey,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Printing.layoutPdf(
-                    onLayout: (format) async => pdfBytes,
-                    name: '${widget.resume.title}.pdf',
-                  );
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              const Gap(8),
-              ListTile(
-                leading: const Icon(Icons.download, color: AppColors.success),
-                title: Text('Download', style: AppTextStyles.titleSmall),
-                subtitle: Text(
-                  'Save to your device',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textGrey,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Printing.sharePdf(
-                    bytes: pdfBytes,
-                    filename: '${widget.resume.title}.pdf',
-                  );
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              const Gap(8),
-              ListTile(
-                leading: const Icon(Icons.share, color: AppColors.accent),
-                title: Text('Share', style: AppTextStyles.titleSmall),
-                subtitle: Text(
-                  'Send to others',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textGrey,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Printing.sharePdf(
-                    bytes: pdfBytes,
-                    filename: '${widget.resume.title}.pdf',
-                  );
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              const Gap(16),
-            ],
-          ),
-        ),
-      ),
+  void _previewPdf() {
+    if (_pdfBytes == null) return;
+    Printing.layoutPdf(
+      onLayout: (format) async => _pdfBytes!,
+      name: '${widget.resume.title}.pdf',
+    );
+  }
+
+  void _downloadPdf() {
+    if (_pdfBytes == null) return;
+    Printing.sharePdf(
+      bytes: _pdfBytes!,
+      filename: '${widget.resume.title}.pdf',
     );
   }
 
@@ -210,151 +85,134 @@ class _TemplateSelectionScreenState
           onPressed: () => context.pop(),
           icon: const Icon(Icons.arrow_back, color: AppColors.textWhite),
         ),
-        title: Text('Template', style: AppTextStyles.headlineMedium),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                const Gap(8),
-                Text('Choose a Template', style: AppTextStyles.displaySmall),
-                const Gap(4),
-                Text(
-                  'Select a style for your resume',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textGrey,
-                  ),
-                ),
-                const Gap(24),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.82,
-                  ),
-                  itemCount: _templates.length,
-                  itemBuilder: (context, index) =>
-                      _buildTemplateCard(index),
-                ),
-                const Gap(24),
-              ],
+        title: Text('Preview Resume', style: AppTextStyles.headlineMedium),
+        actions: [
+          if (_pdfBytes != null)
+            IconButton(
+              onPressed: _downloadPdf,
+              icon: const Icon(Icons.download, color: AppColors.primary),
             ),
+        ],
+      ),
+      body: _buildBody(),
+      bottomNavigationBar: _pdfBytes != null ? _buildBottomBar() : null,
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isGenerating) {
+      return _buildLoadingState();
+    }
+
+    if (_error != null) {
+      return _buildErrorState();
+    }
+
+    if (_pdfBytes != null) {
+      return _buildSuccessState();
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            color: AppColors.primary,
+            strokeWidth: 2,
           ),
-          _buildGenerateButton(),
+          Gap(20),
+          Text(
+            'Generating your resume...',
+            style: TextStyle(color: AppColors.textGrey),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTemplateCard(int index) {
-    final template = _templates[index];
-    final isSelected = _selectedIndex == index;
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withAlpha(51),
-                    blurRadius: 16,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
-        ),
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              flex: 3,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: template.color.withAlpha(26),
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(15)),
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    _buildPreviewLayout(template),
-                    if (isSelected)
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            size: 14,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+            const Icon(
+              Icons.error_outline,
+              color: AppColors.error,
+              size: 48,
+            ),
+            const Gap(16),
+            Text(
+              'Failed to generate PDF',
+              style: AppTextStyles.headlineSmall,
+            ),
+            const Gap(8),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textGrey,
               ),
             ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      template.name,
-                      style: AppTextStyles.titleSmall.copyWith(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.textWhite,
-                      ),
-                    ),
-                    const Gap(4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary.withAlpha(38)
-                            : AppColors.surface,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        template.category,
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.textGrey,
-                          fontSize: 9,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            const Gap(24),
+            ElevatedButton(
+              onPressed: _generatePdf,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.background,
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSuccessState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.success.withAlpha(30),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle,
+                color: AppColors.success,
+                size: 48,
+              ),
+            ),
+            const Gap(24),
+            Text(
+              'Resume Generated!',
+              style: AppTextStyles.headlineMedium.copyWith(
+                color: AppColors.textWhite,
+              ),
+            ),
+            const Gap(8),
+            Text(
+              '${widget.resume.title}.pdf',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textGrey,
+              ),
+            ),
+            const Gap(8),
+            Text(
+              'Tap Preview to view or Download to save',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textGrey,
               ),
             ),
           ],
@@ -363,355 +221,49 @@ class _TemplateSelectionScreenState
     );
   }
 
-  Widget _buildPreviewLayout(dynamic template) {
-    final color = template.color as Color;
-    final icon = template.icon as IconData;
-    final name = template.name as String;
-
-    switch (name) {
-      case 'Modern':
-        return Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 6,
-                      width: 36,
-                      decoration: BoxDecoration(
-                        color: color.withAlpha(128),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    const Gap(8),
-                    ...List.generate(
-                      3,
-                      (i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Row(
-                          children: [
-                            Container(
-                              height: 3,
-                              width: 24 + (i * 4).toDouble(),
-                              decoration: BoxDecoration(
-                                color: color.withAlpha(77),
-                                borderRadius: BorderRadius.circular(1.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              width: 1,
-              color: color.withAlpha(51),
-            ),
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ...List.generate(
-                      4,
-                      (i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: Row(
-                          children: [
-                            Container(
-                              height: 2,
-                              width: 28 + (i * 6).toDouble(),
-                              decoration: BoxDecoration(
-                                color: color.withAlpha(51),
-                                borderRadius: BorderRadius.circular(1),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      case 'Professional':
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: color.withAlpha(128),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const Gap(6),
-              Container(
-                height: 3,
-                width: 28,
-                decoration: BoxDecoration(
-                  color: color.withAlpha(77),
-                  borderRadius: BorderRadius.circular(1.5),
-                ),
-              ),
-              const Gap(2),
-              Container(
-                height: 2,
-                width: 20,
-                decoration: BoxDecoration(
-                  color: color.withAlpha(51),
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-              const Gap(8),
-              ...List.generate(
-                3,
-                (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Container(
-                    height: 2,
-                    width: 44,
-                    decoration: BoxDecoration(
-                      color: color.withAlpha(51),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      case 'Creative':
-        return Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: color.withAlpha(38),
-                  borderRadius:
-                      const BorderRadius.horizontal(left: Radius.circular(15)),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: color.withAlpha(77),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const Gap(6),
-                    ...List.generate(
-                      3,
-                      (i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: Container(
-                          height: 2,
-                          width: 20,
-                          decoration: BoxDecoration(
-                            color: color.withAlpha(51),
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ...List.generate(
-                      4,
-                      (i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: Container(
-                          height: 2,
-                          width: 26 + (i * 4).toDouble(),
-                          decoration: BoxDecoration(
-                            color: color.withAlpha(51),
-                            borderRadius: BorderRadius.circular(1),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      case 'Minimal':
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 4,
-                width: 32,
-                decoration: BoxDecoration(
-                  color: color.withAlpha(102),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const Gap(10),
-              ...List.generate(
-                3,
-                (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Container(
-                    height: 2,
-                    width: 38,
-                    decoration: BoxDecoration(
-                      color: color.withAlpha(51),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      case 'Executive':
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    height: 2,
-                    width: 12,
-                    decoration: BoxDecoration(
-                      color: color.withAlpha(153),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                  const Gap(6),
-                  Container(
-                    height: 2,
-                    width: 24,
-                    decoration: BoxDecoration(
-                      color: color.withAlpha(102),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ],
-              ),
-              const Gap(4),
-              Container(
-                height: 1,
-                width: double.infinity,
-                color: color.withAlpha(51),
-              ),
-              const Gap(8),
-              ...List.generate(
-                3,
-                (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Container(
-                    height: 2,
-                    width: 34,
-                    decoration: BoxDecoration(
-                      color: color.withAlpha(51),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      case 'ATS Friendly':
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ...List.generate(
-                5,
-                (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Container(
-                    height: 2,
-                    width: i == 0 ? 30 : 36,
-                    decoration: BoxDecoration(
-                      color: color.withAlpha(51),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      default:
-        return Icon(icon, size: 32, color: color.withAlpha(128));
-    }
-  }
-
-  Widget _buildGenerateButton() {
+  Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      child: SizedBox(
-        width: double.infinity,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.accent],
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: ElevatedButton(
-            onPressed: _isGenerating ? null : _generatePdf,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              foregroundColor: AppColors.background,
-              disabledBackgroundColor: Colors.transparent,
-              disabledForegroundColor: AppColors.textGrey,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(
+          top: BorderSide(color: AppColors.border, width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _previewPdf,
+              icon: const Icon(Icons.visibility, size: 18),
+              label: const Text('Preview'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
-            child: _isGenerating
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: AppColors.background,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Text('Generate PDF', style: AppTextStyles.buttonMedium),
           ),
-        ),
+          const Gap(12),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: _downloadPdf,
+              icon: const Icon(Icons.download, size: 18),
+              label: const Text('Download'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.background,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

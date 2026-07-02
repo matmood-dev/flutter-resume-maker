@@ -13,6 +13,7 @@ import '../features/resume/resumes_screen.dart';
 import '../features/resume/template_selection_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/templates/templates_screen.dart';
+import '../models/resume_model.dart';
 import 'main_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -85,7 +86,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/resume/create',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const ResumeBuilderScreen(),
+      builder: (context, state) {
+        final resume = state.extra as ResumeModel?;
+        return ResumeBuilderScreen(existingResume: resume);
+      },
     ),
     GoRoute(
       path: '/resume/template-selection',

@@ -15,7 +15,9 @@ import '../../models/resume_model.dart';
 import '../../providers/resume_provider.dart';
 
 class ResumeBuilderScreen extends ConsumerStatefulWidget {
-  const ResumeBuilderScreen({super.key});
+  final ResumeModel? existingResume;
+
+  const ResumeBuilderScreen({super.key, this.existingResume});
 
   @override
   ConsumerState<ResumeBuilderScreen> createState() => _ResumeBuilderScreenState();
@@ -82,6 +84,23 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
+
+    final existing = widget.existingResume;
+    if (existing != null) {
+      _nameController.text = existing.personalInfo.fullName;
+      _emailController.text = existing.personalInfo.email;
+      _phoneController.text = existing.personalInfo.phoneNumber;
+      _addressController.text = existing.personalInfo.address ?? '';
+      _linkedinController.text = existing.personalInfo.linkedIn ?? '';
+      _portfolioController.text = existing.personalInfo.portfolioUrl ?? '';
+      _summaryController.text = existing.summary;
+      _educationList.addAll(existing.education);
+      _experienceList.addAll(existing.experience);
+      _skills.addAll(existing.skills);
+      _projectList.addAll(existing.projects);
+      _certificateList.addAll(existing.certificates);
+      _languages.addAll(existing.languages);
+    }
   }
 
   @override
@@ -138,7 +157,10 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
     if (user == null) return;
 
     try {
+      final isEditing = widget.existingResume != null;
+
       final resume = ResumeModel(
+        id: isEditing ? widget.existingResume!.id : null,
         userId: user.id,
         title: _nameController.text.isNotEmpty
             ? '${_nameController.text}\'s Resume'
@@ -160,12 +182,16 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         languages: _languages,
       );
 
-      await ref.read(resumeProvider.notifier).addResume(resume);
+      if (isEditing) {
+        await ref.read(resumeProvider.notifier).updateResume(resume);
+      } else {
+        await ref.read(resumeProvider.notifier).addResume(resume);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Resume saved! Choose a template to generate PDF.'),
+          SnackBar(
+            content: Text(isEditing ? 'Resume updated! Generating PDF...' : 'Resume saved! Generating PDF...'),
             backgroundColor: AppColors.success,
           ),
         );

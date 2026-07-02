@@ -120,7 +120,7 @@ class _ResumesScreenState extends ConsumerState<ResumesScreen> {
           final resume = resumes[index];
           return _ResumeCard(
             resume: resume,
-            onTap: () => context.push('/resume/create'),
+            onTap: () => context.push('/resume/create', extra: resume),
             onDelete: () =>
                 ref.read(resumeProvider.notifier).deleteResume(resume.id),
           );
