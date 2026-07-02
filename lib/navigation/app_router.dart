@@ -10,6 +10,7 @@ import '../features/dashboard/dashboard_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/resume/resume_builder_screen.dart';
 import '../features/resume/resumes_screen.dart';
+import '../features/resume/template_selection_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/templates/templates_screen.dart';
 import 'main_shell.dart';
@@ -85,6 +86,14 @@ final appRouter = GoRouter(
       path: '/resume/create',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const ResumeBuilderScreen(),
+    ),
+    GoRoute(
+      path: '/resume/template-selection',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final resume = state.extra;
+        return TemplateSelectionScreen(resume: resume as dynamic);
+      },
     ),
     GoRoute(
       path: '/scanner',

@@ -165,11 +165,11 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Resume saved successfully!'),
+            content: Text('Resume saved! Choose a template to generate PDF.'),
             backgroundColor: AppColors.success,
           ),
         );
-        context.go('/home/resumes');
+        context.push('/resume/template-selection', extra: resume);
       }
     } catch (e) {
       if (mounted) {
