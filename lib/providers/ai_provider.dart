@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'auth_provider.dart';
 
@@ -37,6 +38,24 @@ class AiNotifier extends StateNotifier<AiState> {
 
   AiNotifier(this.ref) : super(const AiState());
 
+  Future<void> loadCredits() async {
+    try {
+      final user = ref.read(authProvider).user;
+      if (user == null) return;
+
+      final data = await Supabase.instance.client
+          .from('profiles')
+          .select('ai_credits')
+          .eq('id', user.id)
+          .single();
+
+      final credits = data['ai_credits'] as int? ?? 10;
+      state = state.copyWith(aiCredits: credits);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
   bool useCredit() {
     if (state.aiCredits <= 0) {
       state = state.copyWith(error: 'No AI credits remaining.');
@@ -44,6 +63,17 @@ class AiNotifier extends StateNotifier<AiState> {
     }
     state = state.copyWith(aiCredits: state.aiCredits - 1, clearError: true);
     return true;
+  }
+
+  Future<void> _updateCreditsInSupabase(int newCredits) async {
+    try {
+      final user = ref.read(authProvider).user;
+      if (user == null) return;
+
+      await Supabase.instance.client
+          .from('profiles')
+          .update({'ai_credits': newCredits}).eq('id', user.id);
+    } catch (_) {}
   }
 
   Future<String> generateContent({
@@ -59,7 +89,7 @@ class AiNotifier extends StateNotifier<AiState> {
 
     final result = _mockGenerate(prompt, section);
     state = state.copyWith(isGenerating: false, lastResult: result);
-    _syncCreditsToUser();
+    await _updateCreditsInSupabase(state.aiCredits);
     return result;
   }
 
@@ -76,16 +106,8 @@ class AiNotifier extends StateNotifier<AiState> {
 
     final result = _mockImprove(content, instruction);
     state = state.copyWith(isGenerating: false, lastResult: result);
-    _syncCreditsToUser();
+    await _updateCreditsInSupabase(state.aiCredits);
     return result;
-  }
-
-  void _syncCreditsToUser() {
-    final auth = ref.read(authProvider.notifier);
-    final user = ref.read(authProvider).user;
-    if (user != null) {
-      auth.updateProfile();
-    }
   }
 
   String _mockGenerate(String prompt, String? section) {

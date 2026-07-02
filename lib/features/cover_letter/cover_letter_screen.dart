@@ -1,30 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../providers/resume_provider.dart';
+import '../../providers/ai_provider.dart';
 
-class CoverLetterScreen extends StatefulWidget {
+class CoverLetterScreen extends ConsumerStatefulWidget {
   const CoverLetterScreen({super.key});
 
   @override
-  State<CoverLetterScreen> createState() => _CoverLetterScreenState();
+  ConsumerState<CoverLetterScreen> createState() => _CoverLetterScreenState();
 }
 
-class _CoverLetterScreenState extends State<CoverLetterScreen> {
+class _CoverLetterScreenState extends ConsumerState<CoverLetterScreen> {
   final _companyController = TextEditingController();
   final _positionController = TextEditingController();
-  String? _selectedResume;
-  bool _isGenerating = false;
+  String? _selectedResumeId;
   bool _showLetter = false;
+  String _generatedLetter = '';
 
-  final _resumes = const [
-    'Senior Developer Resume',
-    'Product Manager CV',
-    'UI/UX Designer Resume',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(resumeProvider.notifier).loadResumes();
+    });
+  }
 
   @override
   void dispose() {
@@ -36,7 +42,7 @@ class _CoverLetterScreenState extends State<CoverLetterScreen> {
   void _generateLetter() {
     if (_companyController.text.isEmpty ||
         _positionController.text.isEmpty ||
-        _selectedResume == null) {
+        _selectedResumeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -51,28 +57,65 @@ class _CoverLetterScreenState extends State<CoverLetterScreen> {
       return;
     }
 
-    setState(() {
-      _isGenerating = true;
-    });
+    final company = _companyController.text;
+    final position = _positionController.text;
 
-    Future.delayed(const Duration(seconds: 3), () {
-      setState(() {
-        _isGenerating = false;
-        _showLetter = true;
-      });
+    final prompt =
+        'Write a professional cover letter for a $position position at $company. '
+        'Make it tailored, confident, and concise. Highlight relevant skills and enthusiasm.';
+
+    ref.read(aiProvider.notifier).generateContent(prompt: prompt).then((result) {
+      if (result.isNotEmpty) {
+        setState(() {
+          _generatedLetter = result;
+          _showLetter = true;
+        });
+        _saveCoverLetter(result);
+      }
     });
+  }
+
+  Future<void> _saveCoverLetter(String content) async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return;
+
+      await Supabase.instance.client.from('cover_letters').insert({
+        'user_id': user.id,
+        'resume_id': _selectedResumeId,
+        'company_name': _companyController.text,
+        'position': _positionController.text,
+        'content': content,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to save cover letter',
+              style: AppTextStyles.bodyMedium,
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
   }
 
   void _regenerate() {
     setState(() {
       _showLetter = false;
+      _generatedLetter = '';
     });
     _generateLetter();
   }
 
   void _copyToClipboard() {
-    final letter = _getCoverLetterText();
-    Clipboard.setData(ClipboardData(text: letter));
+    Clipboard.setData(ClipboardData(text: _generatedLetter));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -86,25 +129,10 @@ class _CoverLetterScreenState extends State<CoverLetterScreen> {
     );
   }
 
-  String _getCoverLetterText() {
-    final company = _companyController.text;
-    final position = _positionController.text;
-    return '''Dear Hiring Manager,
-
-I am writing to express my strong interest in the $position position at $company. With a proven track record of delivering high-quality solutions and a passion for innovation, I am confident that my skills and experience align perfectly with your team's needs.
-
-In my previous roles, I have successfully led cross-functional teams, implemented scalable architectures, and delivered impactful products that drove measurable business outcomes. My expertise in modern technologies, combined with my strong problem-solving abilities, positions me to make an immediate contribution to your organization.
-
-I am particularly drawn to $company's mission and innovative approach to the industry. I believe my technical skills, combined with my strong communication and collaboration abilities, make me an ideal candidate for this role.
-
-I would welcome the opportunity to discuss how my background, skills, and enthusiasm can contribute to the continued success of $company. Thank you for considering my application.
-
-Best regards,
-Matt''';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final aiState = ref.watch(aiProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -117,11 +145,11 @@ Matt''';
         title: Text('Cover Letter', style: AppTextStyles.headlineMedium),
         centerTitle: true,
       ),
-      body: _showLetter ? _buildGeneratedLetter() : _buildInputForm(),
+      body: _showLetter ? _buildGeneratedLetter() : _buildInputForm(aiState),
     );
   }
 
-  Widget _buildInputForm() {
+  Widget _buildInputForm(AiState aiState) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -146,7 +174,7 @@ Matt''';
           const Gap(16),
           _buildResumeDropdown(),
           const Gap(32),
-          _buildGenerateButton(),
+          _buildGenerateButton(aiState),
         ],
       ),
     );
@@ -193,6 +221,9 @@ Matt''';
   }
 
   Widget _buildResumeDropdown() {
+    final resumeState = ref.watch(resumeProvider);
+    final resumes = resumeState.resumes;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -204,10 +235,11 @@ Matt''';
             borderRadius: BorderRadius.circular(14),
           ),
           child: DropdownButtonFormField<String>(
-            initialValue: _selectedResume,
+            initialValue: _selectedResumeId,
             dropdownColor: AppColors.card,
             style: AppTextStyles.bodyMedium,
-            icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textGrey),
+            icon:
+                const Icon(Icons.keyboard_arrow_down, color: AppColors.textGrey),
             decoration: InputDecoration(
               hintText: 'Choose a resume',
               hintStyle: AppTextStyles.bodyMedium.copyWith(
@@ -224,15 +256,15 @@ Matt''';
                 vertical: 14,
               ),
             ),
-            items: _resumes.map((resume) {
+            items: resumes.map((resume) {
               return DropdownMenuItem(
-                value: resume,
-                child: Text(resume),
+                value: resume.id,
+                child: Text(resume.title),
               );
             }).toList(),
             onChanged: (value) {
               setState(() {
-                _selectedResume = value;
+                _selectedResumeId = value;
               });
             },
           ),
@@ -241,12 +273,14 @@ Matt''';
     );
   }
 
-  Widget _buildGenerateButton() {
+  Widget _buildGenerateButton(AiState aiState) {
+    final isGenerating = aiState.isGenerating;
+
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: _isGenerating ? null : _generateLetter,
+        onPressed: isGenerating ? null : _generateLetter,
         style: ElevatedButton.styleFrom(
           disabledBackgroundColor: AppColors.primary.withAlpha(100),
           shape: RoundedRectangleBorder(
@@ -257,7 +291,7 @@ Matt''';
         ),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: _isGenerating
+            gradient: isGenerating
                 ? null
                 : const LinearGradient(
                     colors: [AppColors.primary, AppColors.accent],
@@ -266,7 +300,7 @@ Matt''';
           ),
           child: Container(
             alignment: Alignment.center,
-            child: _isGenerating
+            child: isGenerating
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -362,7 +396,7 @@ Matt''';
           Padding(
             padding: const EdgeInsets.all(20),
             child: Text(
-              _getCoverLetterText(),
+              _generatedLetter,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textWhite,
                 height: 1.7,
@@ -424,7 +458,8 @@ Matt''';
             const Gap(6),
             Text(
               label,
-              style: AppTextStyles.labelSmall.copyWith(color: AppColors.textGrey),
+              style:
+                  AppTextStyles.labelSmall.copyWith(color: AppColors.textGrey),
             ),
           ],
         ),

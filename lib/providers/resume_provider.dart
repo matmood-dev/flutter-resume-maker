@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/resume_model.dart';
 
@@ -35,120 +36,81 @@ class ResumeState {
 class ResumeNotifier extends StateNotifier<ResumeState> {
   ResumeNotifier() : super(const ResumeState());
 
-  static final _sampleResumes = [
-    ResumeModel(
-      id: 'resume-001',
-      userId: 'user-001',
-      title: 'Senior Software Engineer',
-      personalInfo: PersonalInfo(
-        fullName: 'Alex Johnson',
-        email: 'alex.johnson@email.com',
-        phoneNumber: '+1 (555) 123-4567',
-        address: 'San Francisco, CA',
-        linkedIn: 'linkedin.com/in/alexjohnson',
-        portfolioUrl: 'alexjohnson.dev',
-      ),
-      summary:
-          'Experienced software engineer with 8+ years building scalable web and mobile applications.',
-      education: [],
-      experience: [],
-      skills: ['Dart', 'Flutter', 'Firebase', 'TypeScript', 'AWS', 'Docker'],
-      projects: [],
-      certificates: [],
-      languages: ['English', 'Spanish'],
-      templateId: 'tmpl-001',
-      atsScore: 87.5,
-      createdAt: DateTime.now().subtract(const Duration(days: 30)),
-      updatedAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    ResumeModel(
-      id: 'resume-002',
-      userId: 'user-001',
-      title: 'Product Manager',
-      personalInfo: PersonalInfo(
-        fullName: 'Alex Johnson',
-        email: 'alex.johnson@email.com',
-        phoneNumber: '+1 (555) 123-4567',
-      ),
-      summary: 'Product manager with a track record of launching successful SaaS products.',
-      education: [],
-      experience: [],
-      skills: ['Product Strategy', 'Agile', 'Jira', 'SQL', 'User Research'],
-      projects: [],
-      certificates: [],
-      languages: ['English'],
-      templateId: 'tmpl-002',
-      createdAt: DateTime.now().subtract(const Duration(days: 14)),
-      updatedAt: DateTime.now().subtract(const Duration(days: 1)),
-    ),
-    ResumeModel(
-      id: 'resume-003',
-      userId: 'user-001',
-      title: 'UX Designer',
-      personalInfo: PersonalInfo(
-        fullName: 'Alex Johnson',
-        email: 'alex.johnson@email.com',
-        phoneNumber: '+1 (555) 123-4567',
-      ),
-      summary: 'Creative UX designer passionate about human-centered design.',
-      education: [],
-      experience: [],
-      skills: ['Figma', 'Sketch', 'Prototyping', 'User Testing', 'Design Systems'],
-      projects: [],
-      certificates: [],
-      languages: ['English', 'French'],
-      atsScore: 72.0,
-      createdAt: DateTime.now().subtract(const Duration(days: 7)),
-      updatedAt: DateTime.now(),
-    ),
-  ];
+  SupabaseClient get _client => Supabase.instance.client;
+
+  String? get _userId => _client.auth.currentUser?.id;
 
   Future<void> loadResumes() async {
+    if (_userId == null) {
+      state = state.copyWith(error: 'User not authenticated');
+      return;
+    }
+
     state = state.copyWith(isLoading: true, clearError: true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    state = state.copyWith(resumes: _sampleResumes, isLoading: false);
+    try {
+      final response = await _client
+          .from('resumes')
+          .select()
+          .eq('user_id', _userId!);
+
+      final resumes = (response as List)
+          .map((json) => ResumeModel.fromMap(json as Map<String, dynamic>))
+          .toList();
+
+      state = state.copyWith(resumes: resumes, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
   }
 
   Future<void> addResume(ResumeModel resume) async {
+    if (_userId == null) {
+      state = state.copyWith(error: 'User not authenticated');
+      return;
+    }
+
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(milliseconds: 300));
-    state = state.copyWith(
-      resumes: [...state.resumes, resume],
-      currentResume: resume,
-      isLoading: false,
-    );
+    try {
+      await _client.from('resumes').insert(resume.toMap());
+      await loadResumes();
+      state = state.copyWith(currentResume: resume);
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
   }
 
-  Future<void> updateResume(ResumeModel updated) async {
+  Future<void> updateResume(ResumeModel resume) async {
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    final list = state.resumes.map((r) => r.id == updated.id ? updated : r).toList();
-
-    state = state.copyWith(
-      resumes: list,
-      currentResume:
-          state.currentResume?.id == updated.id ? updated : state.currentResume,
-      isLoading: false,
-    );
+    try {
+      await _client
+          .from('resumes')
+          .update(resume.toMap())
+          .eq('id', resume.id);
+      await loadResumes();
+      if (state.currentResume?.id == resume.id) {
+        state = state.copyWith(currentResume: resume);
+      }
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
   }
 
-  Future<void> deleteResume(String id) async {
+  Future<void> deleteResume(String resumeId) async {
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    state = state.copyWith(
-      resumes: state.resumes.where((r) => r.id != id).toList(),
-      clearCurrent: state.currentResume?.id == id,
-      isLoading: false,
-    );
+    try {
+      await _client.from('resumes').delete().eq('id', resumeId);
+      state = state.copyWith(
+        resumes: state.resumes.where((r) => r.id != resumeId).toList(),
+        clearCurrent: state.currentResume?.id == resumeId,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
   }
 
-  void setCurrentResume(String id) {
-    final match = state.resumes.where((r) => r.id == id);
-    state = state.copyWith(
-      currentResume: match.isNotEmpty ? match.first : null,
-    );
+  void setCurrentResume(ResumeModel resume) {
+    state = state.copyWith(currentResume: resume);
   }
 }
 

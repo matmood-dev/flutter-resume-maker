@@ -5,24 +5,44 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/resume_provider.dart';
+import '../../providers/ai_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final resumeState = ref.watch(resumeProvider);
+    final aiState = ref.watch(aiProvider);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (resumeState.resumes.isEmpty && !resumeState.isLoading) {
+        ref.read(resumeProvider.notifier).loadResumes();
+      }
+      if (aiState.aiCredits == 10 && !aiState.isGenerating) {
+        ref.read(aiProvider.notifier).loadCredits();
+      }
+    });
+
+    final firstName = user?.fullName.split(' ').first ?? 'User';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(child: _buildHeader(context)),
+          SliverToBoxAdapter(
+            child: _buildHeader(context, firstName),
+          ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _buildSectionHeader('Quick Stats', onTap: () {}),
                 const Gap(12),
-                _buildQuickStats(),
+                _buildQuickStats(resumeState.resumes.length, aiState.aiCredits),
                 const Gap(24),
                 _buildSectionHeader('Quick Actions', onTap: () {}),
                 const Gap(12),
@@ -30,7 +50,7 @@ class DashboardScreen extends ConsumerWidget {
                 const Gap(24),
                 _buildSectionHeader('Recent Resumes', onTap: () {}),
                 const Gap(12),
-                _buildRecentResumes(context),
+                _buildRecentResumes(context, resumeState.resumes),
                 const Gap(24),
                 _buildSectionHeader('AI Tools', onTap: () {}),
                 const Gap(12),
@@ -44,7 +64,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String firstName) {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -76,7 +96,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     const Gap(4),
                     Text(
-                      'Good Morning, Mahmoud',
+                      '${_getGreeting()}, $firstName',
                       style: AppTextStyles.headlineMedium
                           .copyWith(color: Colors.white),
                     ),
@@ -86,7 +106,7 @@ class DashboardScreen extends ConsumerWidget {
               Container(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white24,
                   shape: BoxShape.circle,
                 ),
@@ -152,29 +172,29 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickStats() {
+  Widget _buildQuickStats(int totalResumes, int aiCredits) {
     final stats = [
       _StatItem(
         icon: Icons.description_outlined,
-        count: '12',
+        count: '$totalResumes',
         label: 'Total Resumes',
         color: AppColors.primary,
       ),
       _StatItem(
         icon: Icons.auto_awesome,
-        count: '48',
+        count: '$aiCredits',
         label: 'AI Credits',
         color: const Color(0xFF9C7CFF),
       ),
       _StatItem(
         icon: Icons.download_outlined,
-        count: '156',
+        count: '0',
         label: 'Downloads',
         color: AppColors.success,
       ),
       _StatItem(
         icon: Icons.send_outlined,
-        count: '8',
+        count: '0',
         label: 'Applications',
         color: AppColors.warning,
       ),
@@ -298,36 +318,34 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentResumes(BuildContext context) {
-    final resumes = [
-      _ResumeItem(
-        title: 'Senior Developer Resume',
-        lastEdited: DateTime.now().subtract(const Duration(hours: 2)),
-        templateName: 'Modern',
-        atsScore: 92,
-      ),
-      _ResumeItem(
-        title: 'Product Manager CV',
-        lastEdited: DateTime.now().subtract(const Duration(days: 1)),
-        templateName: 'Professional',
-        atsScore: 85,
-      ),
-      _ResumeItem(
-        title: 'UI/UX Designer Resume',
-        lastEdited: DateTime.now().subtract(const Duration(days: 3)),
-        templateName: 'Creative',
-        atsScore: 78,
-      ),
-    ];
+  Widget _buildRecentResumes(
+      BuildContext context, List<dynamic> resumes) {
+    final recentResumes = resumes.length > 5 ? resumes.sublist(0, 5) : resumes;
+
+    if (recentResumes.isEmpty) {
+      return Container(
+        height: 160,
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Center(
+          child: Text(
+            'No resumes yet. Create your first resume!',
+            style: AppTextStyles.bodyMedium,
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
       height: 160,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: resumes.length,
+        itemCount: recentResumes.length,
         separatorBuilder: (_, _) => const Gap(12),
         itemBuilder: (context, index) {
-          final resume = resumes[index];
+          final resume = recentResumes[index];
           return Container(
             width: 260,
             padding: const EdgeInsets.all(16),
@@ -355,19 +373,20 @@ class DashboardScreen extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    _buildAtsBadge(resume.atsScore),
+                    if (resume.atsScore != null)
+                      _buildAtsBadge(resume.atsScore!.toInt()),
                   ],
                 ),
                 const Gap(8),
                 Text(
-                  resume.templateName,
+                  resume.templateId ?? 'No template',
                   style: AppTextStyles.bodySmall
                       .copyWith(color: AppColors.primary),
                 ),
                 const Spacer(),
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.access_time,
                       size: 14,
                       color: AppColors.textGrey,
@@ -375,7 +394,7 @@ class DashboardScreen extends ConsumerWidget {
                     const Gap(4),
                     Expanded(
                       child: Text(
-                        'Edited ${_formatDate(resume.lastEdited)}',
+                        'Edited ${_formatDate(resume.updatedAt)}',
                         style: AppTextStyles.bodySmall
                             .copyWith(color: AppColors.textGrey),
                         maxLines: 1,
@@ -518,20 +537,6 @@ class _ActionItem {
     required this.icon,
     required this.label,
     required this.color,
-  });
-}
-
-class _ResumeItem {
-  final String title;
-  final DateTime lastEdited;
-  final String templateName;
-  final int atsScore;
-
-  const _ResumeItem({
-    required this.title,
-    required this.lastEdited,
-    required this.templateName,
-    required this.atsScore,
   });
 }
 

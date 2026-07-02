@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/template_model.dart';
 
@@ -38,60 +39,22 @@ class TemplateState {
   }
 }
 
-final _mockTemplates = [
-  TemplateModel(
-    id: 'tmpl-001',
-    name: 'Modern Edge',
-    category: TemplateCategory.modern,
-    previewUrl: 'assets/templates/modern_edge.png',
-    isPremium: false,
-    isFavorite: true,
-  ),
-  TemplateModel(
-    id: 'tmpl-002',
-    name: 'Corporate Pro',
-    category: TemplateCategory.professional,
-    previewUrl: 'assets/templates/corporate_pro.png',
-    isPremium: false,
-  ),
-  TemplateModel(
-    id: 'tmpl-003',
-    name: 'Artisan',
-    category: TemplateCategory.creative,
-    previewUrl: 'assets/templates/artisan.png',
-    isPremium: true,
-  ),
-  TemplateModel(
-    id: 'tmpl-004',
-    name: 'Whitespace',
-    category: TemplateCategory.minimal,
-    previewUrl: 'assets/templates/whitespace.png',
-    isPremium: false,
-    isFavorite: true,
-  ),
-  TemplateModel(
-    id: 'tmpl-005',
-    name: 'Executive Suite',
-    category: TemplateCategory.executive,
-    previewUrl: 'assets/templates/executive_suite.png',
-    isPremium: true,
-  ),
-  TemplateModel(
-    id: 'tmpl-006',
-    name: 'Clean Pass',
-    category: TemplateCategory.atsFriendly,
-    previewUrl: 'assets/templates/clean_pass.png',
-    isPremium: false,
-  ),
-];
-
 class TemplateNotifier extends StateNotifier<TemplateState> {
   TemplateNotifier() : super(const TemplateState());
 
   Future<void> loadTemplates() async {
     state = state.copyWith(isLoading: true, clearError: true);
-    await Future.delayed(const Duration(milliseconds: 500));
-    state = state.copyWith(templates: _mockTemplates, isLoading: false);
+    try {
+      final data = await Supabase.instance.client
+          .from('templates')
+          .select();
+      final templates = (data as List)
+          .map((row) => TemplateModel.fromMap(row))
+          .toList();
+      state = state.copyWith(templates: templates, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), isLoading: false);
+    }
   }
 
   void filterByCategory(TemplateCategory? category) {

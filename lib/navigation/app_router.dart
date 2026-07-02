@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/ai/ai_assistant_screen.dart';
 import '../features/auth/login_screen.dart';
@@ -18,7 +19,23 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/home/dashboard',
+  initialLocation: '/login',
+  redirect: (context, state) {
+    final session = Supabase.instance.client.auth.currentSession;
+    final isLoggedIn = session != null;
+    final isAuthRoute = state.matchedLocation == '/login' ||
+        state.matchedLocation == '/register';
+
+    if (!isLoggedIn && !isAuthRoute) {
+      return '/login';
+    }
+
+    if (isLoggedIn && isAuthRoute) {
+      return '/home/dashboard';
+    }
+
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/login',

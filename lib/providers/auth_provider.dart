@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/user_model.dart';
 
@@ -33,79 +36,144 @@ class AuthState {
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthState());
+  final SupabaseClient _supabase = Supabase.instance.client;
+  StreamSubscription<AuthState>? _authSubscription;
 
-  static final _mockUser = UserModel(
-    id: 'user-001',
-    fullName: 'Alex Johnson',
-    email: 'alex.johnson@email.com',
-    phoneNumber: '+1 (555) 123-4567',
-    aiCredits: 15,
-    subscriptionTier: SubscriptionTier.basic,
-  );
+  AuthNotifier() : super(const AuthState()) {
+    _listenToAuthChanges();
+  }
+
+  void _listenToAuthChanges() {
+    _authSubscription =
+        _supabase.auth.onAuthStateChange.asyncMap((event) async {
+      final session = event.session;
+      if (session != null) {
+        final profile = await _fetchProfile(session.user.id);
+        return state.copyWith(
+          user: profile,
+          isAuthenticated: true,
+          clearError: true,
+        );
+      } else {
+        return state.copyWith(
+          user: null,
+          isAuthenticated: false,
+          clearError: true,
+        );
+      }
+    }).listen((newState) {
+      state = newState;
+    });
+  }
+
+  Future<UserModel?> _fetchProfile(String userId) async {
+    try {
+      final response =
+          await _supabase.from('profiles').select().eq('id', userId).single();
+      return UserModel.fromMap(response);
+    } catch (e) {
+      return null;
+    }
+  }
 
   Future<void> login(String email, String password) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
 
-    if (email.isEmpty || password.isEmpty) {
-      state = state.copyWith(isLoading: false, error: 'Email and password are required.');
-      return;
+      if (response.user != null) {
+        final profile = await _fetchProfile(response.user!.id);
+        state = state.copyWith(
+          user: profile,
+          isAuthenticated: true,
+          isLoading: false,
+        );
+      } else {
+        state = state.copyWith(isLoading: false, error: 'Login failed.');
+      }
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+    } catch (e) {
+      state = state.copyWith(
+          isLoading: false, error: 'An unexpected error occurred.');
     }
-
-    state = state.copyWith(
-      user: _mockUser.copyWith(email: email),
-      isAuthenticated: true,
-      isLoading: false,
-    );
   }
 
-  Future<void> register(String fullName, String email, String password) async {
+  Future<void> register(
+      String fullName, String email, String password) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final response = await _supabase.auth.signUp(
+        email: email,
+        password: password,
+        data: {
+          'full_name': fullName,
+        },
+      );
 
-    if (fullName.isEmpty || email.isEmpty || password.isEmpty) {
-      state = state.copyWith(isLoading: false, error: 'All fields are required.');
-      return;
+      if (response.user != null) {
+        state = state.copyWith(
+          isLoading: false,
+        );
+      } else {
+        state = state.copyWith(isLoading: false, error: 'Registration failed.');
+      }
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+    } catch (e) {
+      state = state.copyWith(
+          isLoading: false, error: 'An unexpected error occurred.');
     }
-
-    state = state.copyWith(
-      user: UserModel(fullName: fullName, email: email, phoneNumber: ''),
-      isAuthenticated: true,
-      isLoading: false,
-    );
   }
 
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(milliseconds: 300));
-    state = const AuthState();
+    try {
+      await _supabase.auth.signOut();
+      state = const AuthState();
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
   }
 
   Future<void> updateProfile({
     String? fullName,
-    String? email,
     String? phoneNumber,
-    String? profileImage,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final updated = state.user?.copyWith(
-      fullName: fullName,
-      email: email,
-      phoneNumber: phoneNumber,
-      profileImage: profileImage,
-    );
-
-    if (updated != null) {
-      state = state.copyWith(user: updated, isLoading: false);
-    } else {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
       state = state.copyWith(isLoading: false, error: 'No user logged in.');
+      return;
     }
+
+    try {
+      final updates = <String, dynamic>{};
+      if (fullName != null) updates['full_name'] = fullName;
+      if (phoneNumber != null) updates['phone_number'] = phoneNumber;
+
+      if (updates.isNotEmpty) {
+        await _supabase.from('profiles').update(updates).eq('id', userId);
+      }
+
+      final profile = await _fetchProfile(userId);
+      state = state.copyWith(user: profile, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+          isLoading: false, error: 'Failed to update profile.');
+    }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 }
 
