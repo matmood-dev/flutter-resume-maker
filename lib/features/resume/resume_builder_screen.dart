@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -9,15 +11,17 @@ import '../../models/education_model.dart';
 import '../../models/experience_model.dart';
 import '../../models/project_model.dart';
 import '../../models/certificate_model.dart';
+import '../../models/resume_model.dart';
+import '../../providers/resume_provider.dart';
 
-class ResumeBuilderScreen extends StatefulWidget {
+class ResumeBuilderScreen extends ConsumerStatefulWidget {
   const ResumeBuilderScreen({super.key});
 
   @override
-  State<ResumeBuilderScreen> createState() => _ResumeBuilderScreenState();
+  ConsumerState<ResumeBuilderScreen> createState() => _ResumeBuilderScreenState();
 }
 
-class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
+class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
   int _currentStep = 0;
   late final PageController _pageController;
 
@@ -126,6 +130,56 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
+    }
+  }
+
+  Future<void> _saveResume() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final resume = ResumeModel(
+        userId: user.id,
+        title: _nameController.text.isNotEmpty
+            ? '${_nameController.text}\'s Resume'
+            : 'Untitled Resume',
+        personalInfo: PersonalInfo(
+          fullName: _nameController.text,
+          email: _emailController.text,
+          phoneNumber: _phoneController.text,
+          address: _addressController.text,
+          linkedIn: _linkedinController.text,
+          portfolioUrl: _portfolioController.text,
+        ),
+        summary: _summaryController.text,
+        education: _educationList,
+        experience: _experienceList,
+        skills: _skills,
+        projects: _projectList,
+        certificates: _certificateList,
+        languages: _languages,
+      );
+
+      await ref.read(resumeProvider.notifier).addResume(resume);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Resume saved successfully!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        context.go('/home/resumes');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving resume: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -1136,8 +1190,9 @@ class _ResumeBuilderScreenState extends State<ResumeBuilderScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ElevatedButton(
-                onPressed:
-                    _currentStep == _stepLabels.length - 1 ? null : _nextStep,
+                onPressed: _currentStep == _stepLabels.length - 1
+                    ? _saveResume
+                    : _nextStep,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,

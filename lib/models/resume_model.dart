@@ -53,9 +53,9 @@ class PersonalInfo {
 
   factory PersonalInfo.fromMap(Map<String, dynamic> map) {
     return PersonalInfo(
-      fullName: map['fullName'] as String,
-      email: map['email'] as String,
-      phoneNumber: map['phoneNumber'] as String,
+      fullName: map['fullName'] as String? ?? '',
+      email: map['email'] as String? ?? '',
+      phoneNumber: map['phoneNumber'] as String? ?? '',
       address: map['address'] as String?,
       linkedIn: map['linkedIn'] as String?,
       portfolioUrl: map['portfolioUrl'] as String?,
@@ -139,9 +139,9 @@ class ResumeModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'userId': userId,
+      'user_id': userId,
       'title': title,
-      'personalInfo': personalInfo.toMap(),
+      'personal_info': personalInfo.toMap(),
       'summary': summary,
       'education': education.map((e) => e.toMap()).toList(),
       'experience': experience.map((e) => e.toMap()).toList(),
@@ -149,20 +149,19 @@ class ResumeModel {
       'projects': projects.map((e) => e.toMap()).toList(),
       'certificates': certificates.map((e) => e.toMap()).toList(),
       'languages': languages,
-      'templateId': templateId,
-      'atsScore': atsScore,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'template_id': templateId ?? '',
+      'ats_score': atsScore ?? 0,
     };
   }
 
   factory ResumeModel.fromMap(Map<String, dynamic> map) {
     return ResumeModel(
-      id: map['id'] as String,
-      userId: map['userId'] as String,
-      title: map['title'] as String,
-      personalInfo:
-          PersonalInfo.fromMap(map['personalInfo'] as Map<String, dynamic>),
+      id: map['id'] as String? ?? '',
+      userId: map['user_id'] as String? ?? '',
+      title: map['title'] as String? ?? 'Untitled',
+      personalInfo: map['personal_info'] != null
+          ? PersonalInfo.fromMap(map['personal_info'] as Map<String, dynamic>)
+          : PersonalInfo(fullName: '', email: '', phoneNumber: ''),
       summary: map['summary'] as String? ?? '',
       education: (map['education'] as List<dynamic>?)
               ?.map((e) => Education.fromMap(e as Map<String, dynamic>))
@@ -172,7 +171,10 @@ class ResumeModel {
               ?.map((e) => Experience.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
-      skills: List<String>.from(map['skills'] ?? []),
+      skills: (map['skills'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
       projects: (map['projects'] as List<dynamic>?)
               ?.map((e) => Project.fromMap(e as Map<String, dynamic>))
               .toList() ??
@@ -181,11 +183,18 @@ class ResumeModel {
               ?.map((e) => Certificate.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
-      languages: List<String>.from(map['languages'] ?? []),
-      templateId: map['templateId'] as String?,
-      atsScore: (map['atsScore'] as num?)?.toDouble(),
-      createdAt: DateTime.parse(map['createdAt'] as String),
-      updatedAt: DateTime.parse(map['updatedAt'] as String),
+      languages: (map['languages'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      templateId: map['template_id'] as String?,
+      atsScore: (map['ats_score'] as num?)?.toDouble(),
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'] as String)
+          : DateTime.now(),
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'] as String)
+          : DateTime.now(),
     );
   }
 }

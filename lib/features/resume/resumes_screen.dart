@@ -27,6 +27,14 @@ class _ResumesScreenState extends ConsumerState<ResumesScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(resumeProvider.notifier).loadResumes();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(resumeProvider);
 
