@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -14,6 +15,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final user = authState.user;
+    final themeState = ref.watch(themeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -62,12 +64,19 @@ class ProfileScreen extends ConsumerWidget {
                   _buildSettingsTile(
                     icon: Icons.dark_mode_outlined,
                     title: 'Theme',
-                    trailing: Text(
-                      'Dark',
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.textGrey),
+                    trailing: Switch(
+                      value: themeState.isDark,
+                      onChanged: (_) {
+                        ref.read(themeProvider.notifier).toggleTheme();
+                      },
+                      activeThumbColor: AppColors.primary,
+                      activeTrackColor: AppColors.primary.withAlpha(80),
+                      inactiveThumbColor: AppColors.textGrey,
+                      inactiveTrackColor: AppColors.card,
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      ref.read(themeProvider.notifier).toggleTheme();
+                    },
                   ),
                   _buildSettingsTile(
                     icon: Icons.notifications_outlined,
@@ -148,7 +157,7 @@ class ProfileScreen extends ConsumerWidget {
         top: MediaQuery.of(context).padding.top + 20,
         bottom: 24,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
@@ -296,7 +305,7 @@ class ProfileScreen extends ConsumerWidget {
                 if (trailing != null)
                   trailing
                 else
-                  const Icon(
+                  Icon(
                     Icons.chevron_right,
                     size: 20,
                     color: AppColors.textGrey,
@@ -335,7 +344,7 @@ class ProfileScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
@@ -359,7 +368,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: AppColors.textGrey),
+                    icon: Icon(Icons.close, color: AppColors.textGrey),
                   ),
                 ],
               ),

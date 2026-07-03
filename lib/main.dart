@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/supabase_config.dart';
 import 'core/theme/app_theme.dart';
 import 'navigation/app_router.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,14 +20,14 @@ void main() async {
   runApp(const ProviderScope(child: ResumeAIApp()));
 }
 
-class ResumeAIApp extends StatefulWidget {
+class ResumeAIApp extends ConsumerStatefulWidget {
   const ResumeAIApp({super.key});
 
   @override
-  State<ResumeAIApp> createState() => _ResumeAIAppState();
+  ConsumerState<ResumeAIApp> createState() => _ResumeAIAppState();
 }
 
-class _ResumeAIAppState extends State<ResumeAIApp> {
+class _ResumeAIAppState extends ConsumerState<ResumeAIApp> {
   late final StreamSubscription<AuthState> _authSubscription;
 
   @override
@@ -47,10 +48,14 @@ class _ResumeAIAppState extends State<ResumeAIApp> {
 
   @override
   Widget build(BuildContext context) {
+    final themeState = ref.watch(themeProvider);
+
     return MaterialApp.router(
       title: 'ResumeAI',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeState.themeMode,
       routerConfig: appRouter,
     );
   }

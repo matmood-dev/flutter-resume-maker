@@ -10,14 +10,14 @@ class AppTextStyles {
   static TextStyle _base({
     required double fontSize,
     required FontWeight fontWeight,
-    Color color = AppColors.textWhite,
+    Color? color,
     double? height,
   }) {
     return TextStyle(
       fontFamily: _fontFamily,
       fontSize: fontSize,
       fontWeight: fontWeight,
-      color: color,
+      color: color ?? AppColors.textWhite,
       height: height,
     );
   }
@@ -25,108 +25,126 @@ class AppTextStyles {
   static TextStyle get displayLarge => _base(
         fontSize: 32,
         fontWeight: FontWeight.w700,
+        color: AppColors.textWhite,
         height: 1.2,
       );
 
   static TextStyle get displayMedium => _base(
         fontSize: 28,
         fontWeight: FontWeight.w700,
+        color: AppColors.textWhite,
         height: 1.2,
       );
 
   static TextStyle get displaySmall => _base(
         fontSize: 24,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.3,
       );
 
   static TextStyle get headlineLarge => _base(
         fontSize: 22,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.3,
       );
 
   static TextStyle get headlineMedium => _base(
         fontSize: 20,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.3,
       );
 
   static TextStyle get headlineSmall => _base(
         fontSize: 18,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.4,
       );
 
   static TextStyle get titleLarge => _base(
         fontSize: 18,
         fontWeight: FontWeight.w500,
+        color: AppColors.textWhite,
         height: 1.4,
       );
 
   static TextStyle get titleMedium => _base(
         fontSize: 16,
         fontWeight: FontWeight.w500,
+        color: AppColors.textWhite,
         height: 1.4,
       );
 
   static TextStyle get titleSmall => _base(
         fontSize: 14,
         fontWeight: FontWeight.w500,
+        color: AppColors.textWhite,
         height: 1.4,
       );
 
   static TextStyle get bodyLarge => _base(
         fontSize: 16,
         fontWeight: FontWeight.w400,
+        color: AppColors.textWhite,
         height: 1.5,
       );
 
   static TextStyle get bodyMedium => _base(
         fontSize: 14,
         fontWeight: FontWeight.w400,
+        color: AppColors.textWhite,
         height: 1.5,
       );
 
   static TextStyle get bodySmall => _base(
         fontSize: 12,
         fontWeight: FontWeight.w400,
+        color: AppColors.textWhite,
         height: 1.5,
       );
 
   static TextStyle get labelLarge => _base(
         fontSize: 14,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.4,
       );
 
   static TextStyle get labelMedium => _base(
         fontSize: 12,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.4,
       );
 
   static TextStyle get labelSmall => _base(
         fontSize: 10,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.4,
       );
 
   static TextStyle get buttonLarge => _base(
         fontSize: 16,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.2,
       );
 
   static TextStyle get buttonMedium => _base(
         fontSize: 14,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.2,
       );
 
   static TextStyle get buttonSmall => _base(
         fontSize: 12,
         fontWeight: FontWeight.w600,
+        color: AppColors.textWhite,
         height: 1.2,
       );
 

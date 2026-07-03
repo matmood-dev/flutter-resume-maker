@@ -319,14 +319,14 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         top: 8,
         bottom: MediaQuery.of(context).padding.bottom + 8,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.mic, color: AppColors.textGrey),
+            icon: Icon(Icons.mic, color: AppColors.textGrey),
             onPressed: () {},
           ),
           Expanded(

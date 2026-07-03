@@ -100,7 +100,7 @@ class _TemplateSelectionScreenState
         elevation: 0,
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back, color: AppColors.textWhite),
+          icon: Icon(Icons.arrow_back, color: AppColors.textWhite),
         ),
         title: Text('Choose Template', style: AppTextStyles.headlineMedium),
       ),
@@ -211,7 +211,7 @@ class _TemplateSelectionScreenState
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -326,7 +326,7 @@ class _TemplateSelectionScreenState
   Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
         border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
       ),

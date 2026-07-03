@@ -70,7 +70,7 @@ class _ResumesScreenState extends ConsumerState<ResumesScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/resume/create'),
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: AppColors.background, size: 28),
+        child: Icon(Icons.add, color: AppColors.background, size: 28),
       ),
     );
   }
@@ -224,7 +224,7 @@ class _ResumeCard extends StatelessWidget {
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.more_vert,
                     color: AppColors.textGrey,
                     size: 20,

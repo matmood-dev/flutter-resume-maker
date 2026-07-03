@@ -67,7 +67,7 @@ class _ScannerScreenState extends State<ScannerScreen>
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textWhite),
+          icon: Icon(Icons.arrow_back_ios, color: AppColors.textWhite),
           onPressed: () => context.pop(),
         ),
         title: Text('Resume Scanner', style: AppTextStyles.headlineMedium),

@@ -340,7 +340,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
               surface: AppColors.card,
               onSurface: AppColors.textWhite,
@@ -362,7 +362,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back, color: AppColors.textWhite),
+          icon: Icon(Icons.arrow_back, color: AppColors.textWhite),
         ),
         title: Text('Resume Builder', style: AppTextStyles.headlineMedium),
       ),
@@ -429,7 +429,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                   ),
                   child: Center(
                     child: isCompleted
-                        ? const Icon(Icons.check,
+                        ? Icon(Icons.check,
                             color: AppColors.background, size: 18)
                         : Text(
                             '${index + 1}',
@@ -544,43 +544,43 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         _buildTextField(
           controller: _nameController,
           label: 'Full Name',
-          prefix: const Icon(Icons.person_outline, color: AppColors.textGrey),
+          prefix: Icon(Icons.person_outline, color: AppColors.textGrey),
         ),
         _buildTextField(
           controller: _emailController,
           label: 'Email',
           keyboardType: TextInputType.emailAddress,
-          prefix: const Icon(Icons.email_outlined, color: AppColors.textGrey),
+          prefix: Icon(Icons.email_outlined, color: AppColors.textGrey),
         ),
         _buildTextField(
           controller: _phoneController,
           label: 'Phone',
           keyboardType: TextInputType.phone,
           prefix:
-              const Icon(Icons.phone_outlined, color: AppColors.textGrey),
+              Icon(Icons.phone_outlined, color: AppColors.textGrey),
         ),
         _buildTextField(
           controller: _addressController,
           label: 'Address',
-          prefix: const Icon(Icons.location_on_outlined,
+          prefix: Icon(Icons.location_on_outlined,
               color: AppColors.textGrey),
         ),
         _buildTextField(
           controller: _linkedinController,
           label: 'LinkedIn',
           prefix:
-              const Icon(Icons.link, color: AppColors.textGrey),
+              Icon(Icons.link, color: AppColors.textGrey),
         ),
         _buildTextField(
           controller: _githubController,
           label: 'GitHub',
-          prefix: const Icon(Icons.code, color: AppColors.textGrey),
+          prefix: Icon(Icons.code, color: AppColors.textGrey),
         ),
         _buildTextField(
           controller: _portfolioController,
           label: 'Portfolio URL',
           prefix:
-              const Icon(Icons.language, color: AppColors.textGrey),
+              Icon(Icons.language, color: AppColors.textGrey),
         ),
       ],
     );
@@ -657,7 +657,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     IconButton(
                       onPressed: () =>
                           setState(() => _educationList.removeAt(entry.key)),
-                      icon: const Icon(Icons.close,
+                      icon: Icon(Icons.close,
                           color: AppColors.textGrey, size: 20),
                     ),
                   ],
@@ -771,7 +771,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     IconButton(
                       onPressed: () =>
                           setState(() => _experienceList.removeAt(entry.key)),
-                      icon: const Icon(Icons.close,
+                      icon: Icon(Icons.close,
                           color: AppColors.textGrey, size: 20),
                     ),
                   ],
@@ -997,7 +997,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     IconButton(
                       onPressed: () =>
                           setState(() => _projectList.removeAt(entry.key)),
-                      icon: const Icon(Icons.close,
+                      icon: Icon(Icons.close,
                           color: AppColors.textGrey, size: 20),
                     ),
                   ],
@@ -1019,7 +1019,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         _buildTextField(
           controller: _projectLinkController,
           label: 'GitHub Link',
-          prefix: const Icon(Icons.code, color: AppColors.textGrey),
+          prefix: Icon(Icons.code, color: AppColors.textGrey),
         ),
         const Gap(12),
         _buildAIButton(
@@ -1120,7 +1120,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     IconButton(
                       onPressed: () =>
                           setState(() => _certificateList.removeAt(entry.key)),
-                      icon: const Icon(Icons.close,
+                      icon: Icon(Icons.close,
                           color: AppColors.textGrey, size: 20),
                     ),
                   ],
@@ -1408,7 +1408,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
             ),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            suffixIcon: const Icon(Icons.calendar_today,
+            suffixIcon: Icon(Icons.calendar_today,
                 color: AppColors.textGrey, size: 20),
           ),
           child: Text(
@@ -1435,7 +1435,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                 onPressed: _prevStep,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.textWhite,
-                  side: const BorderSide(color: AppColors.border),
+                  side: BorderSide(color: AppColors.border),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

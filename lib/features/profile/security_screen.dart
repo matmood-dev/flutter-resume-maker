@@ -99,7 +99,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.65,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
@@ -124,7 +124,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: AppColors.textGrey),
+                    icon: Icon(Icons.close, color: AppColors.textGrey),
                   ),
                 ],
               ),
@@ -250,7 +250,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back, color: AppColors.textWhite),
+          icon: Icon(Icons.arrow_back, color: AppColors.textWhite),
         ),
         title: Text('Security', style: AppTextStyles.headlineMedium),
       ),
@@ -419,7 +419,7 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
                 if (trailing != null)
                   trailing
                 else
-                  const Icon(
+                  Icon(
                     Icons.chevron_right,
                     size: 20,
                     color: AppColors.textGrey,
@@ -474,74 +474,4 @@ class _SecurityScreenState extends ConsumerState<SecurityScreen> {
     );
   }
 
-  void _showDeleteAccountDialog() {
-    final confirmController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.card,
-        title: Text('Delete Account', style: AppTextStyles.titleLarge),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'This action is permanent and cannot be undone. All your data will be deleted.',
-              style:
-                  AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
-            ),
-            const Gap(16),
-            TextField(
-              controller: confirmController,
-              style: AppTextStyles.bodyMedium,
-              decoration: InputDecoration(
-                hintText: 'Type DELETE to confirm',
-                hintStyle: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.textGrey),
-                filled: true,
-                fillColor: AppColors.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              confirmController.dispose();
-              Navigator.pop(context);
-            },
-            child: Text('Cancel',
-                style:
-                    AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey)),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (confirmController.text == 'DELETE') {
-                confirmController.dispose();
-                Navigator.pop(context);
-                try {
-                  await Supabase.instance.client.auth.admin
-                      .deleteUser(Supabase.instance.client.auth.currentUser!.id);
-                } catch (e) {
-                  await Supabase.instance.client.auth.signOut();
-                }
-                if (context.mounted) {
-                  context.go('/login');
-                }
-              }
-            },
-            child: Text('Delete',
-                style:
-                    AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
-          ),
-        ],
-      ),
-    );
-  }
 }

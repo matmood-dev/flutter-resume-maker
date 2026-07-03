@@ -23,7 +23,7 @@ class SubscriptionScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back, color: AppColors.textWhite),
+          icon: Icon(Icons.arrow_back, color: AppColors.textWhite),
         ),
         title: Text('Subscription', style: AppTextStyles.headlineMedium),
       ),
@@ -309,7 +309,7 @@ class SubscriptionScreen extends ConsumerWidget {
                     : OutlinedButton(
                         onPressed: onTap,
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.border),
+                          side: BorderSide(color: AppColors.border),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

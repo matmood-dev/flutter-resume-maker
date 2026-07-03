@@ -386,7 +386,7 @@ class DashboardScreen extends ConsumerWidget {
                 const Spacer(),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.access_time,
                       size: 14,
                       color: AppColors.textGrey,

@@ -119,7 +119,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [AppColors.primary, AppColors.accent],
@@ -172,7 +172,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       style: AppTextStyles.bodyLarge,
       decoration: InputDecoration(
         hintText: 'Full name',
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.person_outline,
           color: AppColors.textGrey,
         ),
@@ -180,23 +180,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         fillColor: AppColors.card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -210,7 +210,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       style: AppTextStyles.bodyLarge,
       decoration: InputDecoration(
         hintText: 'Email address',
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.email_outlined,
           color: AppColors.textGrey,
         ),
@@ -218,23 +218,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         fillColor: AppColors.card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -253,7 +253,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       style: AppTextStyles.bodyLarge,
       decoration: InputDecoration(
         hintText: 'Phone number (optional)',
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.phone_outlined,
           color: AppColors.textGrey,
         ),
@@ -261,23 +261,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         fillColor: AppColors.card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -291,7 +291,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       style: AppTextStyles.bodyLarge,
       decoration: InputDecoration(
         hintText: 'Password',
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.lock_outline,
           color: AppColors.textGrey,
         ),
@@ -310,23 +310,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         fillColor: AppColors.card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -340,7 +340,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       style: AppTextStyles.bodyLarge,
       decoration: InputDecoration(
         hintText: 'Confirm password',
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.lock_outline,
           color: AppColors.textGrey,
         ),
@@ -359,23 +359,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         fillColor: AppColors.card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -386,7 +386,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       height: 56,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [AppColors.primary, AppColors.accent],
@@ -426,7 +426,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget _buildSocialDivider() {
     return Row(
       children: [
-        const Expanded(
+        Expanded(
           child: Divider(color: AppColors.border, thickness: 1),
         ),
         Padding(
@@ -438,7 +438,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
           ),
         ),
-        const Expanded(
+        Expanded(
           child: Divider(color: AppColors.border, thickness: 1),
         ),
       ],
@@ -522,7 +522,7 @@ class _SocialButton extends StatelessWidget {
         ),
         style: OutlinedButton.styleFrom(
           backgroundColor: AppColors.card,
-          side: const BorderSide(color: AppColors.border, width: 1.5),
+          side: BorderSide(color: AppColors.border, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
