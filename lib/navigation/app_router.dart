@@ -14,6 +14,7 @@ import '../features/resume/template_selection_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/templates/templates_screen.dart';
 import '../models/resume_model.dart';
+import '../features/subscription/subscription_screen.dart';
 import 'main_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -108,6 +109,11 @@ final appRouter = GoRouter(
       path: '/cover-letter/create',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const CoverLetterScreen(),
+    ),
+    GoRoute(
+      path: '/subscription',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const SubscriptionScreen(),
     ),
   ],
 );
