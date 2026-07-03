@@ -107,17 +107,17 @@ class ProfileScreen extends ConsumerWidget {
                   _buildSettingsTile(
                     icon: Icons.help_outline,
                     title: 'Help Center',
-                    onTap: () {},
+                    onTap: () => context.push('/help'),
                   ),
                   _buildSettingsTile(
                     icon: Icons.privacy_tip_outlined,
                     title: 'Privacy Policy',
-                    onTap: () {},
+                    onTap: () => context.push('/privacy'),
                   ),
                   _buildSettingsTile(
                     icon: Icons.description_outlined,
                     title: 'Terms of Service',
-                    onTap: () {},
+                    onTap: () => context.push('/terms'),
                     showDivider: false,
                   ),
                 ]),
