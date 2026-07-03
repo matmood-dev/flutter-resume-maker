@@ -65,6 +65,11 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
   final _certOrgController = TextEditingController();
   DateTime _certDate = DateTime.now();
 
+  int? _editingEducationIndex;
+  int? _editingExperienceIndex;
+  int? _editingProjectIndex;
+  int? _editingCertificateIndex;
+
   final List<String> _languages = [];
   final _languageController = TextEditingController();
 
@@ -140,25 +145,33 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
             _degreeController.text.isNotEmpty &&
             _majorController.text.isNotEmpty) {
           setState(() {
-            _educationList.add(Education(
+            final edu = Education(
               school: _schoolController.text,
               degree: _degreeController.text,
               major: _majorController.text,
               gpa: double.tryParse(_gpaController.text),
               graduationDate: _graduationDate,
-            ));
+            );
+            if (_editingEducationIndex != null) {
+              _educationList[_editingEducationIndex!] = edu;
+              _editingEducationIndex = null;
+            } else {
+              _educationList.add(edu);
+            }
             _schoolController.clear();
             _degreeController.clear();
             _majorController.clear();
             _gpaController.clear();
           });
+        } else {
+          _editingEducationIndex = null;
         }
         break;
       case 3:
         if (_companyController.text.isNotEmpty &&
             _positionController.text.isNotEmpty) {
           setState(() {
-            _experienceList.add(Experience(
+            final exp = Experience(
               company: _companyController.text,
               position: _positionController.text,
               startDate: _expStartDate,
@@ -167,18 +180,26 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                   .split('\n')
                   .where((s) => s.trim().isNotEmpty)
                   .toList(),
-            ));
+            );
+            if (_editingExperienceIndex != null) {
+              _experienceList[_editingExperienceIndex!] = exp;
+              _editingExperienceIndex = null;
+            } else {
+              _experienceList.add(exp);
+            }
             _companyController.clear();
             _positionController.clear();
             _responsibilitiesController.clear();
           });
+        } else {
+          _editingExperienceIndex = null;
         }
         break;
       case 5:
         if (_projectNameController.text.isNotEmpty &&
             _projectDescController.text.isNotEmpty) {
           setState(() {
-            _projectList.add(Project(
+            final proj = Project(
               name: _projectNameController.text,
               description: _projectDescController.text,
               technologies: _projectTechController.text
@@ -189,26 +210,42 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
               githubLink: _projectLinkController.text.isNotEmpty
                   ? _projectLinkController.text
                   : null,
-            ));
+            );
+            if (_editingProjectIndex != null) {
+              _projectList[_editingProjectIndex!] = proj;
+              _editingProjectIndex = null;
+            } else {
+              _projectList.add(proj);
+            }
             _projectNameController.clear();
             _projectDescController.clear();
             _projectTechController.clear();
             _projectLinkController.clear();
           });
+        } else {
+          _editingProjectIndex = null;
         }
         break;
       case 6:
         if (_certNameController.text.isNotEmpty &&
             _certOrgController.text.isNotEmpty) {
           setState(() {
-            _certificateList.add(Certificate(
+            final cert = Certificate(
               name: _certNameController.text,
               organization: _certOrgController.text,
               date: _certDate,
-            ));
+            );
+            if (_editingCertificateIndex != null) {
+              _certificateList[_editingCertificateIndex!] = cert;
+              _editingCertificateIndex = null;
+            } else {
+              _certificateList.add(cert);
+            }
             _certNameController.clear();
             _certOrgController.clear();
           });
+        } else {
+          _editingCertificateIndex = null;
         }
         break;
     }
@@ -600,11 +637,30 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () =>
-                      setState(() => _educationList.removeAt(entry.key)),
-                  icon: const Icon(Icons.close,
-                      color: AppColors.textGrey, size: 20),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _editingEducationIndex = entry.key;
+                          _schoolController.text = edu.school;
+                          _degreeController.text = edu.degree;
+                          _majorController.text = edu.major;
+                          _gpaController.text = edu.gpa?.toString() ?? '';
+                          _graduationDate = edu.graduationDate;
+                        });
+                      },
+                      icon: const Icon(Icons.edit,
+                          color: AppColors.primary, size: 20),
+                    ),
+                    IconButton(
+                      onPressed: () =>
+                          setState(() => _educationList.removeAt(entry.key)),
+                      icon: const Icon(Icons.close,
+                          color: AppColors.textGrey, size: 20),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -630,13 +686,19 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                 _degreeController.text.isNotEmpty &&
                 _majorController.text.isNotEmpty) {
               setState(() {
-                _educationList.add(Education(
+                final edu = Education(
                   school: _schoolController.text,
                   degree: _degreeController.text,
                   major: _majorController.text,
                   gpa: double.tryParse(_gpaController.text),
                   graduationDate: _graduationDate,
-                ));
+                );
+                if (_editingEducationIndex != null) {
+                  _educationList[_editingEducationIndex!] = edu;
+                  _editingEducationIndex = null;
+                } else {
+                  _educationList.add(edu);
+                }
                 _schoolController.clear();
                 _degreeController.clear();
                 _majorController.clear();
@@ -644,8 +706,8 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
               });
             }
           },
-          icon: const Icon(Icons.add, color: AppColors.primary),
-          label: const Text('Add More'),
+          icon: Icon(_editingEducationIndex != null ? Icons.check : Icons.add, color: AppColors.primary),
+          label: Text(_editingEducationIndex != null ? 'Update' : 'Add More'),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
@@ -688,11 +750,31 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () =>
-                      setState(() => _experienceList.removeAt(entry.key)),
-                  icon: const Icon(Icons.close,
-                      color: AppColors.textGrey, size: 20),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _editingExperienceIndex = entry.key;
+                          _companyController.text = exp.company;
+                          _positionController.text = exp.position;
+                          _responsibilitiesController.text =
+                              exp.responsibilities.join('\n');
+                          _expStartDate = exp.startDate;
+                          _expEndDate = exp.endDate;
+                        });
+                      },
+                      icon: const Icon(Icons.edit,
+                          color: AppColors.primary, size: 20),
+                    ),
+                    IconButton(
+                      onPressed: () =>
+                          setState(() => _experienceList.removeAt(entry.key)),
+                      icon: const Icon(Icons.close,
+                          color: AppColors.textGrey, size: 20),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -729,7 +811,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
             if (_companyController.text.isNotEmpty &&
                 _positionController.text.isNotEmpty) {
               setState(() {
-                _experienceList.add(Experience(
+                final exp = Experience(
                   company: _companyController.text,
                   position: _positionController.text,
                   startDate: _expStartDate,
@@ -738,15 +820,21 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                       .split('\n')
                       .where((s) => s.trim().isNotEmpty)
                       .toList(),
-                ));
+                );
+                if (_editingExperienceIndex != null) {
+                  _experienceList[_editingExperienceIndex!] = exp;
+                  _editingExperienceIndex = null;
+                } else {
+                  _experienceList.add(exp);
+                }
                 _companyController.clear();
                 _positionController.clear();
                 _responsibilitiesController.clear();
               });
             }
           },
-          icon: const Icon(Icons.add, color: AppColors.primary),
-          label: const Text('Add More'),
+          icon: Icon(_editingExperienceIndex != null ? Icons.check : Icons.add, color: AppColors.primary),
+          label: Text(_editingExperienceIndex != null ? 'Update' : 'Add More'),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
@@ -769,16 +857,24 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
             spacing: 8,
             runSpacing: 8,
             children: _skills.map((skill) {
-              return Chip(
-                label: Text(skill, style: AppTextStyles.labelMedium),
-                backgroundColor: AppColors.primary.withAlpha(38),
-                labelStyle: const TextStyle(color: AppColors.primary),
-                deleteIcon:
-                    const Icon(Icons.close, size: 16, color: AppColors.primary),
-                onDeleted: () => setState(() => _skills.remove(skill)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: BorderSide.none,
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _skillController.text = skill;
+                    _skills.remove(skill);
+                  });
+                },
+                child: Chip(
+                  label: Text(skill, style: AppTextStyles.labelMedium),
+                  backgroundColor: AppColors.primary.withAlpha(38),
+                  labelStyle: const TextStyle(color: AppColors.primary),
+                  deleteIcon:
+                      const Icon(Icons.close, size: 16, color: AppColors.primary),
+                  onDeleted: () => setState(() => _skills.remove(skill)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide.none,
+                  ),
                 ),
               );
             }).toList(),
@@ -880,11 +976,31 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () =>
-                      setState(() => _projectList.removeAt(entry.key)),
-                  icon: const Icon(Icons.close,
-                      color: AppColors.textGrey, size: 20),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _editingProjectIndex = entry.key;
+                          _projectNameController.text = proj.name;
+                          _projectDescController.text = proj.description;
+                          _projectTechController.text =
+                              proj.technologies.join(', ');
+                          _projectLinkController.text =
+                              proj.githubLink ?? '';
+                        });
+                      },
+                      icon: const Icon(Icons.edit,
+                          color: AppColors.primary, size: 20),
+                    ),
+                    IconButton(
+                      onPressed: () =>
+                          setState(() => _projectList.removeAt(entry.key)),
+                      icon: const Icon(Icons.close,
+                          color: AppColors.textGrey, size: 20),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -917,7 +1033,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
             if (_projectNameController.text.isNotEmpty &&
                 _projectDescController.text.isNotEmpty) {
               setState(() {
-                _projectList.add(Project(
+                final proj = Project(
                   name: _projectNameController.text,
                   description: _projectDescController.text,
                   technologies: _projectTechController.text
@@ -928,7 +1044,13 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                   githubLink: _projectLinkController.text.isNotEmpty
                       ? _projectLinkController.text
                       : null,
-                ));
+                );
+                if (_editingProjectIndex != null) {
+                  _projectList[_editingProjectIndex!] = proj;
+                  _editingProjectIndex = null;
+                } else {
+                  _projectList.add(proj);
+                }
                 _projectNameController.clear();
                 _projectDescController.clear();
                 _projectTechController.clear();
@@ -936,8 +1058,8 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
               });
             }
           },
-          icon: const Icon(Icons.add, color: AppColors.primary),
-          label: const Text('Add More'),
+          icon: Icon(_editingProjectIndex != null ? Icons.check : Icons.add, color: AppColors.primary),
+          label: Text(_editingProjectIndex != null ? 'Update' : 'Add More'),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
@@ -980,11 +1102,28 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () =>
-                      setState(() => _certificateList.removeAt(entry.key)),
-                  icon: const Icon(Icons.close,
-                      color: AppColors.textGrey, size: 20),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _editingCertificateIndex = entry.key;
+                          _certNameController.text = cert.name;
+                          _certOrgController.text = cert.organization;
+                          _certDate = cert.date;
+                        });
+                      },
+                      icon: const Icon(Icons.edit,
+                          color: AppColors.primary, size: 20),
+                    ),
+                    IconButton(
+                      onPressed: () =>
+                          setState(() => _certificateList.removeAt(entry.key)),
+                      icon: const Icon(Icons.close,
+                          color: AppColors.textGrey, size: 20),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1009,18 +1148,24 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
             if (_certNameController.text.isNotEmpty &&
                 _certOrgController.text.isNotEmpty) {
               setState(() {
-                _certificateList.add(Certificate(
+                final cert = Certificate(
                   name: _certNameController.text,
                   organization: _certOrgController.text,
                   date: _certDate,
-                ));
+                );
+                if (_editingCertificateIndex != null) {
+                  _certificateList[_editingCertificateIndex!] = cert;
+                  _editingCertificateIndex = null;
+                } else {
+                  _certificateList.add(cert);
+                }
                 _certNameController.clear();
                 _certOrgController.clear();
               });
             }
           },
-          icon: const Icon(Icons.add, color: AppColors.primary),
-          label: const Text('Add More'),
+          icon: Icon(_editingCertificateIndex != null ? Icons.check : Icons.add, color: AppColors.primary),
+          label: Text(_editingCertificateIndex != null ? 'Update' : 'Add More'),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
@@ -1043,16 +1188,24 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
             spacing: 8,
             runSpacing: 8,
             children: _languages.map((lang) {
-              return Chip(
-                label: Text(lang, style: AppTextStyles.labelMedium),
-                backgroundColor: AppColors.primary.withAlpha(38),
-                labelStyle: const TextStyle(color: AppColors.primary),
-                deleteIcon: const Icon(Icons.close,
-                    size: 16, color: AppColors.primary),
-                onDeleted: () => setState(() => _languages.remove(lang)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: BorderSide.none,
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _languageController.text = lang;
+                    _languages.remove(lang);
+                  });
+                },
+                child: Chip(
+                  label: Text(lang, style: AppTextStyles.labelMedium),
+                  backgroundColor: AppColors.primary.withAlpha(38),
+                  labelStyle: const TextStyle(color: AppColors.primary),
+                  deleteIcon: const Icon(Icons.close,
+                      size: 16, color: AppColors.primary),
+                  onDeleted: () => setState(() => _languages.remove(lang)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide.none,
+                  ),
                 ),
               );
             }).toList(),
