@@ -155,3 +155,30 @@ DROP TRIGGER IF EXISTS on_resume_updated ON resumes;
 CREATE TRIGGER on_resume_updated
   BEFORE UPDATE ON resumes
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+-- Add profile_image column to profiles
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS profile_image TEXT DEFAULT '';
+
+-- Create storage bucket for profile images
+INSERT INTO storage.buckets (id, name, public) VALUES ('profile-images', 'profile-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow users to upload their own profile images
+DROP POLICY IF EXISTS "Users can upload profile images" ON storage.objects;
+CREATE POLICY "Users can upload profile images" ON storage.objects
+  FOR INSERT WITH CHECK (bucket_id = 'profile-images' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Allow anyone to view profile images
+DROP POLICY IF EXISTS "Public can view profile images" ON storage.objects;
+CREATE POLICY "Public can view profile images" ON storage.objects
+  FOR SELECT USING (bucket_id = 'profile-images');
+
+-- Allow users to update their own profile images
+DROP POLICY IF EXISTS "Users can update own profile images" ON storage.objects;
+CREATE POLICY "Users can update own profile images" ON storage.objects
+  FOR UPDATE USING (bucket_id = 'profile-images' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Allow users to delete their own profile images
+DROP POLICY IF EXISTS "Users can delete own profile images" ON storage.objects;
+CREATE POLICY "Users can delete own profile images" ON storage.objects
+  FOR DELETE USING (bucket_id = 'profile-images' AND auth.uid()::text = (storage.foldername(name))[1]);

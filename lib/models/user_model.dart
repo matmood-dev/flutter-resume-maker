@@ -49,27 +49,39 @@ class UserModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'fullName': fullName,
+      'full_name': fullName,
       'email': email,
-      'phoneNumber': phoneNumber,
-      'profileImage': profileImage,
-      'aiCredits': aiCredits,
-      'subscriptionTier': subscriptionTier.index,
-      'createdAt': createdAt.toIso8601String(),
+      'phone_number': phoneNumber,
+      'profile_image': profileImage,
+      'ai_credits': aiCredits,
+      'subscription_tier': subscriptionTier.index,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    dynamic subTier = map['subscription_tier'] ?? map['subscriptionTier'];
+    SubscriptionTier tier = SubscriptionTier.free;
+    if (subTier is int) {
+      tier = SubscriptionTier.values[subTier.clamp(0, SubscriptionTier.values.length - 1)];
+    } else if (subTier is String) {
+      final idx = SubscriptionTier.values.indexWhere(
+        (e) => e.name == subTier,
+      );
+      if (idx != -1) tier = SubscriptionTier.values[idx];
+    }
+
     return UserModel(
       id: map['id'] as String,
-      fullName: map['fullName'] as String,
-      email: map['email'] as String,
-      phoneNumber: map['phoneNumber'] as String,
-      profileImage: map['profileImage'] as String?,
-      aiCredits: map['aiCredits'] as int? ?? 10,
-      subscriptionTier:
-          SubscriptionTier.values[map['subscriptionTier'] as int? ?? 0],
-      createdAt: DateTime.parse(map['createdAt'] as String),
+      fullName: (map['full_name'] as String?) ?? (map['fullName'] as String?) ?? '',
+      email: map['email'] as String? ?? '',
+      phoneNumber: (map['phone_number'] as String?) ?? (map['phoneNumber'] as String?) ?? '',
+      profileImage: (map['profile_image'] as String?) ?? (map['profileImage'] as String?),
+      aiCredits: map['ai_credits'] as int? ?? map['aiCredits'] as int? ?? 10,
+      subscriptionTier: tier,
+      createdAt: DateTime.tryParse(
+              map['created_at'] as String? ?? map['createdAt'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }
