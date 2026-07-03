@@ -1,18 +1,10 @@
 import 'package:uuid/uuid.dart';
 
-enum TemplateCategory {
-  modern,
-  professional,
-  creative,
-  minimal,
-  executive,
-  atsFriendly,
-}
-
 class TemplateModel {
   final String id;
   final String name;
-  final TemplateCategory category;
+  final String description;
+  final String category;
   final String previewUrl;
   final bool isPremium;
   final bool isFavorite;
@@ -20,8 +12,9 @@ class TemplateModel {
   TemplateModel({
     String? id,
     required this.name,
+    this.description = '',
     required this.category,
-    required this.previewUrl,
+    this.previewUrl = '',
     this.isPremium = false,
     this.isFavorite = false,
   }) : id = id ?? const Uuid().v4();
@@ -29,7 +22,8 @@ class TemplateModel {
   TemplateModel copyWith({
     String? id,
     String? name,
-    TemplateCategory? category,
+    String? description,
+    String? category,
     String? previewUrl,
     bool? isPremium,
     bool? isFavorite,
@@ -37,6 +31,7 @@ class TemplateModel {
     return TemplateModel(
       id: id ?? this.id,
       name: name ?? this.name,
+      description: description ?? this.description,
       category: category ?? this.category,
       previewUrl: previewUrl ?? this.previewUrl,
       isPremium: isPremium ?? this.isPremium,
@@ -48,10 +43,10 @@ class TemplateModel {
     return {
       'id': id,
       'name': name,
-      'category': category.index,
-      'previewUrl': previewUrl,
-      'isPremium': isPremium,
-      'isFavorite': isFavorite,
+      'description': description,
+      'category': category,
+      'preview_url': previewUrl,
+      'is_premium': isPremium,
     };
   }
 
@@ -59,10 +54,10 @@ class TemplateModel {
     return TemplateModel(
       id: map['id'] as String,
       name: map['name'] as String,
-      category: TemplateCategory.values[map['category'] as int],
-      previewUrl: map['previewUrl'] as String,
-      isPremium: map['isPremium'] as bool? ?? false,
-      isFavorite: map['isFavorite'] as bool? ?? false,
+      description: map['description'] as String? ?? '',
+      category: map['category'] as String,
+      previewUrl: map['preview_url'] as String? ?? '',
+      isPremium: map['is_premium'] as bool? ?? false,
     );
   }
 }

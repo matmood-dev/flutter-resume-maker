@@ -23,24 +23,41 @@ class TemplateSelectionScreen extends ConsumerStatefulWidget {
 
 class _TemplateSelectionScreenState
     extends ConsumerState<TemplateSelectionScreen> {
-  bool _isGenerating = true;
+  int _selectedIndex = 0;
+  bool _isGenerating = false;
   Uint8List? _pdfBytes;
   String? _error;
 
-  @override
-  void initState() {
-    super.initState();
-    _generatePdf();
-  }
+  static const _templates = [
+    (
+      name: 'Modern',
+      key: 'modern',
+      description: 'Two-column with dark sidebar and yellow accent',
+      icon: Icons.view_column_outlined,
+      color: Color(0xFF2A2A2A),
+    ),
+    (
+      name: 'ATS Friendly',
+      key: 'ats',
+      description: 'Simple single-column, optimized for ATS scanners',
+      icon: Icons.description_outlined,
+      color: Color(0xFF374151),
+    ),
+  ];
 
   Future<void> _generatePdf() async {
     setState(() {
       _isGenerating = true;
       _error = null;
+      _pdfBytes = null;
     });
 
     try {
-      final pdfBytes = await PdfService.generateResumePdf(widget.resume);
+      final templateKey = _templates[_selectedIndex].key;
+      final pdfBytes = await PdfService.generateResumePdf(
+        widget.resume,
+        templateName: templateKey,
+      );
 
       if (mounted) {
         setState(() {
@@ -85,34 +102,112 @@ class _TemplateSelectionScreenState
           onPressed: () => context.pop(),
           icon: const Icon(Icons.arrow_back, color: AppColors.textWhite),
         ),
-        title: Text('Preview Resume', style: AppTextStyles.headlineMedium),
-        actions: [
-          if (_pdfBytes != null)
-            IconButton(
-              onPressed: _downloadPdf,
-              icon: const Icon(Icons.download, color: AppColors.primary),
-            ),
+        title: Text('Choose Template', style: AppTextStyles.headlineMedium),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: _pdfBytes == null && !_isGenerating
+                ? _buildTemplateSelection()
+                : _isGenerating
+                    ? _buildLoadingState()
+                    : _error != null
+                        ? _buildErrorState()
+                        : _buildPreviewState(),
+          ),
+          if (_pdfBytes == null && !_isGenerating) _buildGenerateButton(),
+          if (_pdfBytes != null) _buildBottomBar(),
         ],
       ),
-      body: _buildBody(),
-      bottomNavigationBar: _pdfBytes != null ? _buildBottomBar() : null,
     );
   }
 
-  Widget _buildBody() {
-    if (_isGenerating) {
-      return _buildLoadingState();
-    }
-
-    if (_error != null) {
-      return _buildErrorState();
-    }
-
-    if (_pdfBytes != null) {
-      return _buildSuccessState();
-    }
-
-    return const SizedBox.shrink();
+  Widget _buildTemplateSelection() {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      children: [
+        Text('Select a Template', style: AppTextStyles.displaySmall),
+        const Gap(4),
+        Text(
+          'Choose a style for your resume',
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
+        ),
+        const Gap(24),
+        ...List.generate(_templates.length, (index) {
+          final template = _templates[index];
+          final isSelected = _selectedIndex == index;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedIndex = index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : AppColors.border,
+                    width: isSelected ? 2 : 1,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withAlpha(51),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: template.color.withAlpha(30),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(template.icon, color: template.color, size: 24),
+                    ),
+                    const Gap(16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            template.name,
+                            style: AppTextStyles.titleMedium.copyWith(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textWhite,
+                            ),
+                          ),
+                          const Gap(4),
+                          Text(
+                            template.description,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isSelected)
+                      const Icon(
+                        Icons.check_circle,
+                        color: AppColors.primary,
+                        size: 24,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
   }
 
   Widget _buildLoadingState() {
@@ -120,15 +215,9 @@ class _TemplateSelectionScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            color: AppColors.primary,
-            strokeWidth: 2,
-          ),
+          CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
           Gap(20),
-          Text(
-            'Generating your resume...',
-            style: TextStyle(color: AppColors.textGrey),
-          ),
+          Text('Generating your resume...', style: TextStyle(color: AppColors.textGrey)),
         ],
       ),
     );
@@ -141,23 +230,14 @@ class _TemplateSelectionScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: AppColors.error,
-              size: 48,
-            ),
+            const Icon(Icons.error_outline, color: AppColors.error, size: 48),
             const Gap(16),
-            Text(
-              'Failed to generate PDF',
-              style: AppTextStyles.headlineSmall,
-            ),
+            Text('Failed to generate PDF', style: AppTextStyles.headlineSmall),
             const Gap(8),
             Text(
               _error!,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textGrey,
-              ),
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
             ),
             const Gap(24),
             ElevatedButton(
@@ -174,48 +254,70 @@ class _TemplateSelectionScreenState
     );
   }
 
-  Widget _buildSuccessState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.success.withAlpha(30),
-                shape: BoxShape.circle,
+  Widget _buildPreviewState() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                _templates[_selectedIndex].icon,
+                color: AppColors.primary,
+                size: 20,
               ),
-              child: const Icon(
-                Icons.check_circle,
-                color: AppColors.success,
-                size: 48,
+              const Gap(8),
+              Text(
+                '${_templates[_selectedIndex].name} Template',
+                style: AppTextStyles.titleMedium.copyWith(color: AppColors.primary),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => setState(() {
+                  _pdfBytes = null;
+                  _error = null;
+                }),
+                child: const Text('Change'),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: PdfPreview(
+            onPrinted: (details) {},
+            actions: [],
+            build: (format) async => _pdfBytes!,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenerateButton() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      child: SizedBox(
+        width: double.infinity,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.primary, AppColors.accent],
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ElevatedButton(
+            onPressed: _generatePdf,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              foregroundColor: AppColors.background,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-            const Gap(24),
-            Text(
-              'Resume Generated!',
-              style: AppTextStyles.headlineMedium.copyWith(
-                color: AppColors.textWhite,
-              ),
-            ),
-            const Gap(8),
-            Text(
-              '${widget.resume.title}.pdf',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textGrey,
-              ),
-            ),
-            const Gap(8),
-            Text(
-              'Tap Preview to view or Download to save',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textGrey,
-              ),
-            ),
-          ],
+            child: Text('Generate PDF', style: AppTextStyles.buttonMedium),
+          ),
         ),
       ),
     );
@@ -226,9 +328,7 @@ class _TemplateSelectionScreenState
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       decoration: const BoxDecoration(
         color: AppColors.background,
-        border: Border(
-          top: BorderSide(color: AppColors.border, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
       ),
       child: Row(
         children: [

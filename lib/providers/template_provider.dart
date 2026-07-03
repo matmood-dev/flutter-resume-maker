@@ -5,7 +5,7 @@ import '../models/template_model.dart';
 
 class TemplateState {
   final List<TemplateModel> templates;
-  final TemplateCategory? selectedCategory;
+  final String? selectedCategory;
   final bool isLoading;
   final String? error;
 
@@ -18,7 +18,7 @@ class TemplateState {
 
   TemplateState copyWith({
     List<TemplateModel>? templates,
-    TemplateCategory? selectedCategory,
+    String? selectedCategory,
     bool? isLoading,
     String? error,
     bool clearCategory = false,
@@ -57,7 +57,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
     }
   }
 
-  void filterByCategory(TemplateCategory? category) {
+  void filterByCategory(String? category) {
     if (category == state.selectedCategory) {
       state = state.copyWith(clearCategory: true);
     } else {
@@ -72,7 +72,6 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
       }
       return t;
     }).toList();
-
     state = state.copyWith(templates: updated);
   }
 }

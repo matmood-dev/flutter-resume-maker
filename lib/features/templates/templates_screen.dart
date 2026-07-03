@@ -17,33 +17,21 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
-  static const _categories = <TemplateCategory?>[
+  static const _categories = <String?>[
     null,
-    TemplateCategory.modern,
-    TemplateCategory.professional,
-    TemplateCategory.creative,
-    TemplateCategory.minimal,
-    TemplateCategory.executive,
-    TemplateCategory.atsFriendly,
+    'modern',
+    'ats',
   ];
 
-  static const _categoryLabels = <TemplateCategory?, String>{
+  static const _categoryLabels = <String?, String>{
     null: 'All',
-    TemplateCategory.modern: 'Modern',
-    TemplateCategory.professional: 'Professional',
-    TemplateCategory.creative: 'Creative',
-    TemplateCategory.minimal: 'Minimal',
-    TemplateCategory.executive: 'Executive',
-    TemplateCategory.atsFriendly: 'ATS Friendly',
+    'modern': 'Modern',
+    'ats': 'ATS Friendly',
   };
 
-  static const _previewColors = <TemplateCategory, Color>{
-    TemplateCategory.modern: Color(0xFF76C8FF),
-    TemplateCategory.professional: Color(0xFF4CAF50),
-    TemplateCategory.creative: Color(0xFFFF9800),
-    TemplateCategory.minimal: Color(0xFF9E9E9E),
-    TemplateCategory.executive: Color(0xFF9C7CFF),
-    TemplateCategory.atsFriendly: Color(0xFF00BCD4),
+  static const _previewColors = <String, Color>{
+    'modern': Color(0xFF76C8FF),
+    'ats': Color(0xFF00BCD4),
   };
 
   @override
@@ -294,7 +282,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        _categoryLabels[template.category]!,
+                        _categoryLabels[template.category] ?? template.category,
                         style: AppTextStyles.labelSmall.copyWith(
                           color: AppColors.textGrey,
                           fontSize: 9,

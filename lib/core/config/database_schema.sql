@@ -44,10 +44,11 @@ CREATE TABLE IF NOT EXISTS cover_letters (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Templates table (seeded with default templates)
+-- Templates table
 CREATE TABLE IF NOT EXISTS templates (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
+  description TEXT DEFAULT '',
   category TEXT NOT NULL,
   preview_url TEXT DEFAULT '',
   is_premium BOOLEAN NOT NULL DEFAULT false
@@ -57,6 +58,20 @@ CREATE TABLE IF NOT EXISTS templates (
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resumes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cover_letters ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies to recreate
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can view own resumes" ON resumes;
+DROP POLICY IF EXISTS "Users can create own resumes" ON resumes;
+DROP POLICY IF EXISTS "Users can update own resumes" ON resumes;
+DROP POLICY IF EXISTS "Users can delete own resumes" ON resumes;
+DROP POLICY IF EXISTS "Users can view own cover letters" ON cover_letters;
+DROP POLICY IF EXISTS "Users can create own cover letters" ON cover_letters;
+DROP POLICY IF EXISTS "Users can update own cover letters" ON cover_letters;
+DROP POLICY IF EXISTS "Users can delete own cover letters" ON cover_letters;
+DROP POLICY IF EXISTS "Anyone can view templates" ON templates;
 
 -- Profiles policies
 CREATE POLICY "Users can view own profile" ON profiles
@@ -98,14 +113,13 @@ CREATE POLICY "Users can delete own cover letters" ON cover_letters
 CREATE POLICY "Anyone can view templates" ON templates
   FOR SELECT USING (true);
 
+-- Add description column to templates if not exists
+ALTER TABLE templates ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+
 -- Seed default templates
-INSERT INTO templates (id, name, category, preview_url, is_premium) VALUES
-  ('tmpl-001', 'Modern Edge', 'modern', 'assets/templates/modern_edge.png', false),
-  ('tmpl-002', 'Corporate Pro', 'professional', 'assets/templates/corporate_pro.png', false),
-  ('tmpl-003', 'Artisan', 'creative', 'assets/templates/artisan.png', true),
-  ('tmpl-004', 'Whitespace', 'minimal', 'assets/templates/whitespace.png', false),
-  ('tmpl-005', 'Executive Suite', 'executive', 'assets/templates/executive_suite.png', true),
-  ('tmpl-006', 'Clean Pass', 'ats_friendly', 'assets/templates/clean_pass.png', false)
+INSERT INTO templates (id, name, description, category, preview_url, is_premium) VALUES
+  ('tmpl-001', 'Modern', 'Two-column layout with dark sidebar and yellow accent', 'modern', '', false),
+  ('tmpl-002', 'ATS Friendly', 'Simple single-column optimized for ATS scanners', 'ats', '', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Function to auto-create profile on user signup
