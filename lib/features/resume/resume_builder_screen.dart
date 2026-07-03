@@ -272,9 +272,9 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
     }
   }
 
-  Future<void> _saveResume() async {
+  Future<ResumeModel?> _saveResume({bool navigateToTemplate = false}) async {
     final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
+    if (user == null) return null;
 
     try {
       final isEditing = widget.existingResume != null;
@@ -312,12 +312,15 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isEditing ? 'Resume updated! Generating PDF...' : 'Resume saved! Generating PDF...'),
+            content: Text(isEditing ? 'Resume updated!' : 'Resume saved!'),
             backgroundColor: AppColors.success,
           ),
         );
-        context.push('/resume/template-selection', extra: resume);
+        if (navigateToTemplate) {
+          context.push('/resume/template-selection', extra: resume);
+        }
       }
+      return resume;
     } catch (e) {
       debugPrint('=== SAVE ERROR: $e ===');
       if (mounted) {
@@ -328,6 +331,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
           ),
         );
       }
+      return null;
     }
   }
 
@@ -601,7 +605,14 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         _buildAIButton(
           label: 'Generate with AI',
           icon: Icons.auto_awesome,
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Coming soon'),
+                backgroundColor: AppColors.warning,
+              ),
+            );
+          },
         ),
       ],
     );
@@ -803,7 +814,14 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         _buildAIButton(
           label: 'Improve with AI',
           icon: Icons.auto_awesome,
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Coming soon'),
+                backgroundColor: AppColors.warning,
+              ),
+            );
+          },
         ),
         const Gap(12),
         OutlinedButton.icon(
@@ -938,7 +956,14 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         _buildAIButton(
           label: 'Suggest Skills',
           icon: Icons.auto_awesome,
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Coming soon'),
+                backgroundColor: AppColors.warning,
+              ),
+            );
+          },
         ),
       ],
     );
@@ -1025,7 +1050,14 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         _buildAIButton(
           label: 'Rewrite with AI',
           icon: Icons.auto_awesome,
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Coming soon'),
+                backgroundColor: AppColors.warning,
+              ),
+            );
+          },
         ),
         const Gap(12),
         OutlinedButton.icon(
@@ -1425,6 +1457,8 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
   }
 
   Widget _buildNavigationButtons() {
+    final isLastStep = _currentStep == _stepLabels.length - 1;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Row(
@@ -1445,36 +1479,77 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
               ),
             ),
           if (_currentStep > 0) const Gap(12),
-          Expanded(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.accent],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ElevatedButton(
-                onPressed: _currentStep == _stepLabels.length - 1
-                    ? _saveResume
-                    : _nextStep,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  foregroundColor: AppColors.background,
-                  disabledBackgroundColor: Colors.transparent,
-                  disabledForegroundColor: AppColors.textGrey,
+          if (isLastStep) ...[
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () async {
+                  final resume = await _saveResume();
+                  if (resume != null && mounted) {
+                    context.go('/home/resumes');
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textWhite,
+                  side: const BorderSide(color: AppColors.primary),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
-                  _currentStep == _stepLabels.length - 1 ? 'Finish' : 'Next',
-                  style: AppTextStyles.buttonMedium,
+                child: const Text('Finish'),
+              ),
+            ),
+            const Gap(12),
+            Expanded(
+              flex: 2,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.accent],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ElevatedButton(
+                  onPressed: () => _saveResume(navigateToTemplate: true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: AppColors.background,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text('Generate PDF', style: AppTextStyles.buttonMedium),
                 ),
               ),
             ),
-          ),
+          ] else
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.accent],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ElevatedButton(
+                  onPressed: _nextStep,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: AppColors.background,
+                    disabledBackgroundColor: Colors.transparent,
+                    disabledForegroundColor: AppColors.textGrey,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text('Next', style: AppTextStyles.buttonMedium),
+                ),
+              ),
+            ),
         ],
       ),
     );
