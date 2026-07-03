@@ -14,6 +14,11 @@ import '../features/resume/template_selection_screen.dart';
 import '../features/scanner/scanner_screen.dart';
 import '../features/templates/templates_screen.dart';
 import '../models/resume_model.dart';
+import '../features/subscription/subscription_screen.dart';
+import '../features/profile/security_screen.dart';
+import '../features/profile/faqs_screen.dart';
+import '../features/profile/privacy_policy_screen.dart';
+import '../features/profile/terms_of_service_screen.dart';
 import 'main_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -108,6 +113,31 @@ final appRouter = GoRouter(
       path: '/cover-letter/create',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const CoverLetterScreen(),
+    ),
+    GoRoute(
+      path: '/subscription',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const SubscriptionScreen(),
+    ),
+    GoRoute(
+      path: '/security',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const SecurityScreen(),
+    ),
+    GoRoute(
+      path: '/help',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const FAQsScreen(),
+    ),
+    GoRoute(
+      path: '/privacy',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const PrivacyPolicyScreen(),
+    ),
+    GoRoute(
+      path: '/terms',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const TermsOfServiceScreen(),
     ),
   ],
 );

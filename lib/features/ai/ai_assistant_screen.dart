@@ -1,373 +1,262 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../providers/ai_provider.dart';
 
-class _ChatMessage {
-  final String text;
-  final bool isUser;
-  final DateTime timestamp;
-
-  const _ChatMessage({
-    required this.text,
-    required this.isUser,
-    required this.timestamp,
-  });
-}
-
-class AiAssistantScreen extends ConsumerStatefulWidget {
+class AiAssistantScreen extends StatelessWidget {
   const AiAssistantScreen({super.key});
 
   @override
-  ConsumerState<AiAssistantScreen> createState() => _AiAssistantScreenState();
-}
-
-class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
-  final _controller = TextEditingController();
-  final _scrollController = ScrollController();
-  final List<_ChatMessage> _messages = [];
-  bool _isTyping = false;
-
-  final _suggestions = const [
-    'Generate Resume',
-    'Improve Text',
-    'Cover Letter',
-    'Interview Prep',
-    'Career Advice',
-  ];
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  Future<void> _sendMessage(String text) async {
-    if (text.trim().isEmpty || _isTyping) return;
-
-    final userMessage = _ChatMessage(
-      text: text.trim(),
-      isUser: true,
-      timestamp: DateTime.now(),
-    );
-    
-    setState(() {
-      _messages.add(userMessage);
-      _isTyping = true;
-    });
-    _controller.clear();
-    _scrollToBottom();
-
-    final aiState = ref.read(aiProvider);
-    if (aiState.aiCredits <= 0) {
-      setState(() {
-        _messages.add(_ChatMessage(
-          text: 'No AI credits remaining. Please upgrade your plan.',
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
-        _isTyping = false;
-      });
-      _scrollToBottom();
-      return;
-    }
-
-    final result = await ref.read(aiProvider.notifier).generateContent(
-          prompt: text.trim(),
-        );
-
-    if (mounted) {
-      setState(() {
-        _messages.add(_ChatMessage(
-          text: result.isEmpty ? 'Unable to generate response.' : result,
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
-        _isTyping = false;
-      });
-      _scrollToBottom();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final aiState = ref.watch(aiProvider);
-
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-          onPressed: () => context.pop(),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: _buildHeader(context),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const Gap(32),
+                _buildComingSoonCard(),
+                const Gap(32),
+                _buildFeaturesSection(),
+                const Gap(32),
+                _buildNotifySection(context),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.accent],
         ),
-        title: Text('AI Assistant', style: AppTextStyles.titleLarge),
-        centerTitle: true,
-        actions: [
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 20,
+        left: 20,
+        right: 20,
+        bottom: 24,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('AI Assistant', style: AppTextStyles.headlineMedium.copyWith(color: Colors.white)),
+          const Gap(8),
+          Text(
+            'Your intelligent career companion',
+            style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComingSoonCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withAlpha(51)),
+      ),
+      child: Column(
+        children: [
           Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primary.withAlpha(51),
+                  AppColors.accent.withAlpha(51),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: AppColors.primary,
+              size: 40,
+            ),
+          ),
+          const Gap(20),
+          Text(
+            'Coming Soon',
+            style: AppTextStyles.headlineMedium,
+          ),
+          const Gap(8),
+          Text(
+            'We\'re building something amazing for you. Our AI assistant will help you craft perfect resumes, write cover letters, and prepare for interviews.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textGrey,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturesSection() {
+    final features = [
+      _FeatureItem(
+        icon: Icons.auto_awesome,
+        title: 'AI Resume Builder',
+        description: 'Generate professional resumes tailored to your target job',
+        color: AppColors.primary,
+      ),
+      _FeatureItem(
+        icon: Icons.edit_note,
+        title: 'Smart Text Improvement',
+        description: 'Enhance your writing with AI-powered suggestions',
+        color: const Color(0xFF9C7CFF),
+      ),
+      _FeatureItem(
+        icon: Icons.mail_outline,
+        title: 'Cover Letter Generator',
+        description: 'Create personalized cover letters in seconds',
+        color: AppColors.success,
+      ),
+      _FeatureItem(
+        icon: Icons.psychology_outlined,
+        title: 'Interview Coach',
+        description: 'Practice with AI-generated interview questions',
+        color: AppColors.warning,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('What\'s Coming', style: AppTextStyles.titleLarge),
+        const Gap(16),
+        ...features.map((feature) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.card,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.primary.withAlpha(80)),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.auto_awesome, size: 16, color: AppColors.primary),
-                const Gap(4),
-                Text(
-                  '${aiState.aiCredits}',
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: AppColors.primary,
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: feature.color.withAlpha(38),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(feature.icon, color: feature.color, size: 24),
+                ),
+                const Gap(14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(feature.title, style: AppTextStyles.titleSmall),
+                      const Gap(4),
+                      Text(
+                        feature.description,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textGrey,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (_messages.isEmpty) _buildSuggestions(),
-          Expanded(
-            child: _messages.isEmpty
-                ? _buildEmptyState()
-                : _buildMessageList(),
-          ),
-          _buildInputField(),
-        ],
-      ),
+        )),
+      ],
     );
   }
 
-  Widget _buildSuggestions() {
+  Widget _buildNotifySection(BuildContext context) {
     return Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _suggestions.length,
-            separatorBuilder: (_, b) => const Gap(8),
-        itemBuilder: (context, index) {
-          final suggestion = _suggestions[index];
-          return ActionChip(
-            label: Text(
-              suggestion,
-              style: AppTextStyles.labelMedium.copyWith(color: AppColors.textWhite),
-            ),
-            backgroundColor: AppColors.card,
-            side: BorderSide(color: AppColors.border),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            onPressed: () => _sendMessage(suggestion),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          );
-        },
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border.withAlpha(51)),
       ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(38),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.auto_awesome,
-                color: AppColors.primary,
-                size: 40,
-              ),
-            ),
-            const Gap(24),
-            Text(
-              'Hi! I\'m your AI assistant',
-              style: AppTextStyles.headlineMedium,
-              textAlign: TextAlign.center,
-            ),
-            const Gap(8),
-            Text(
-              'Ask me anything about resumes, cover letters, or career advice. I\'m here to help you land your dream job.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textGrey,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMessageList() {
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: _messages.length + (_isTyping ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == _messages.length) {
-          return _buildTypingIndicator();
-        }
-        return _buildMessageBubble(_messages[index]);
-      },
-    );
-  }
-
-  Widget _buildMessageBubble(_ChatMessage message) {
-    final isUser = message.isUser;
-
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.78,
-        ),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isUser ? AppColors.primary : AppColors.card,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isUser ? 16 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 16),
-          ),
-        ),
-        child: Text(
-          message.text,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: isUser ? Colors.white : AppColors.textWhite,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTypingIndicator() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-            bottomLeft: Radius.circular(4),
-            bottomRight: Radius.circular(16),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.primary,
-              ),
-            ),
-            const Gap(8),
-            Text(
-              'Thinking...',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textGrey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputField() {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 8,
-        top: 8,
-        bottom: MediaQuery.of(context).padding.bottom + 8,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border)),
-      ),
-      child: Row(
+      child: Column(
         children: [
-          IconButton(
-            icon: const Icon(Icons.mic, color: AppColors.textGrey),
-            onPressed: () {},
+          Icon(
+            Icons.notifications_outlined,
+            color: AppColors.primary,
+            size: 32,
           ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: TextField(
-                controller: _controller,
-                style: AppTextStyles.bodyMedium,
-                decoration: InputDecoration(
-                  hintText: 'Ask AI anything...',
-                  hintStyle: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textGrey,
+          const Gap(12),
+          Text(
+            'Get Notified',
+            style: AppTextStyles.titleMedium,
+          ),
+          const Gap(8),
+          Text(
+            'We\'ll let you know when AI Assistant is ready.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
+          ),
+          const Gap(16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('You\'ll be notified when we launch!'),
+                    backgroundColor: AppColors.success,
                   ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.background,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                onSubmitted: _sendMessage,
               ),
-            ),
-          ),
-          const Gap(4),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.send, color: Colors.white, size: 20),
-              onPressed: () => _sendMessage(_controller.text),
+              child: const Text('Notify Me'),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _FeatureItem {
+  final IconData icon;
+  final String title;
+  final String description;
+  final Color color;
+
+  const _FeatureItem({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.color,
+  });
 }

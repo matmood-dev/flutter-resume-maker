@@ -138,10 +138,10 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
             hintText: 'Search templates...',
             hintStyle: AppTextStyles.bodyMedium
                 .copyWith(color: AppColors.textGrey),
-            prefixIcon: const Icon(Icons.search, color: AppColors.textGrey),
+            prefixIcon: Icon(Icons.search, color: AppColors.textGrey),
             suffixIcon: _searchQuery.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.close, size: 20, color: AppColors.textGrey),
+                    icon: Icon(Icons.close, size: 20, color: AppColors.textGrey),
                     onPressed: () {
                       _searchController.clear();
                       setState(() => _searchQuery = '');

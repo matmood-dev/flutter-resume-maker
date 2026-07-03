@@ -139,7 +139,7 @@ class _CoverLetterScreenState extends ConsumerState<CoverLetterScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textWhite),
+          icon: Icon(Icons.arrow_back_ios, color: AppColors.textWhite),
           onPressed: () => context.pop(),
         ),
         title: Text('Cover Letter', style: AppTextStyles.headlineMedium),
@@ -239,7 +239,7 @@ class _CoverLetterScreenState extends ConsumerState<CoverLetterScreen> {
             dropdownColor: AppColors.card,
             style: AppTextStyles.bodyMedium,
             icon:
-                const Icon(Icons.keyboard_arrow_down, color: AppColors.textGrey),
+                Icon(Icons.keyboard_arrow_down, color: AppColors.textGrey),
             decoration: InputDecoration(
               hintText: 'Choose a resume',
               hintStyle: AppTextStyles.bodyMedium.copyWith(

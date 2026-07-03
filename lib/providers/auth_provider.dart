@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -117,9 +118,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
 
       if (response.user != null) {
-        state = state.copyWith(
-          isLoading: false,
-        );
+        if (response.session != null) {
+          final profile = await _fetchProfile(response.user!.id);
+          state = state.copyWith(
+            user: profile,
+            isAuthenticated: true,
+            isLoading: false,
+          );
+        } else {
+          state = state.copyWith(
+            isLoading: false,
+            error: 'Please check your email to confirm your account.',
+          );
+        }
       } else {
         state = state.copyWith(isLoading: false, error: 'Registration failed.');
       }
@@ -167,6 +178,45 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
           isLoading: false, error: 'Failed to update profile.');
+    }
+  }
+
+  Future<void> uploadProfileImage(Uint8List bytes, String ext) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final oldFiles = await _supabase.storage.from('profile-images').list(path: userId);
+      if (oldFiles.isNotEmpty) {
+        final oldPaths = oldFiles.map((f) => '$userId/${f.name}').toList();
+        await _supabase.storage.from('profile-images').remove(oldPaths);
+      }
+
+      final path = '$userId/profile.$ext';
+
+      await _supabase.storage.from('profile-images').uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(
+              contentType: 'image/$ext',
+              upsert: true,
+            ),
+          );
+
+      final url = _supabase.storage.from('profile-images').getPublicUrl(path);
+
+      await _supabase
+          .from('profiles')
+          .update({'profile_image': url}).eq('id', userId);
+
+      final profile = await _fetchProfile(userId);
+      state = state.copyWith(user: profile, isLoading: false);
+    } catch (e) {
+      debugPrint('=== IMAGE UPLOAD ERROR: $e ===');
+      state = state.copyWith(
+          isLoading: false, error: 'Failed to upload image: $e');
     }
   }
 

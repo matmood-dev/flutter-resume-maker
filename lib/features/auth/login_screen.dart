@@ -97,7 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [AppColors.primary, AppColors.accent],
@@ -149,7 +149,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       style: AppTextStyles.bodyLarge,
       decoration: InputDecoration(
         hintText: 'Email address',
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.email_outlined,
           color: AppColors.textGrey,
         ),
@@ -157,23 +157,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         fillColor: AppColors.card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -187,7 +187,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       style: AppTextStyles.bodyLarge,
       decoration: InputDecoration(
         hintText: 'Password',
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.lock_outline,
           color: AppColors.textGrey,
         ),
@@ -206,23 +206,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         fillColor: AppColors.card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -248,7 +248,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       height: 56,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [AppColors.primary, AppColors.accent],
@@ -288,7 +288,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget _buildSocialDivider() {
     return Row(
       children: [
-        const Expanded(
+        Expanded(
           child: Divider(color: AppColors.border, thickness: 1),
         ),
         Padding(
@@ -300,7 +300,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
-        const Expanded(
+        Expanded(
           child: Divider(color: AppColors.border, thickness: 1),
         ),
       ],
@@ -384,7 +384,7 @@ class _SocialButton extends StatelessWidget {
         ),
         style: OutlinedButton.styleFrom(
           backgroundColor: AppColors.card,
-          side: const BorderSide(color: AppColors.border, width: 1.5),
+          side: BorderSide(color: AppColors.border, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
