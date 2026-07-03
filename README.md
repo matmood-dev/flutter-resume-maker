@@ -132,7 +132,7 @@ The app uses Supabase with the following tables:
 
 ## Author
 
-**Matt** — [matmood.netlify.app](https://matmood.netlify.app)
+**Mahmood AlTurabi** — [matmood.netlify.app](https://matmood.netlify.app)
 
 ## License
 
