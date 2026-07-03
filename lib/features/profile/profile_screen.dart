@@ -82,8 +82,15 @@ class ProfileScreen extends ConsumerWidget {
                     icon: Icons.notifications_outlined,
                     title: 'Notifications',
                     trailing: Switch(
-                      value: true,
-                      onChanged: (_) {},
+                      value: false,
+                      onChanged: (_) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Coming soon'),
+                            backgroundColor: AppColors.warning,
+                          ),
+                        );
+                      },
                       activeThumbColor: AppColors.primary,
                       activeTrackColor: AppColors.primary.withAlpha(80),
                       inactiveThumbColor: AppColors.textGrey,
