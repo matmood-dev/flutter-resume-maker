@@ -117,9 +117,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
 
       if (response.user != null) {
-        state = state.copyWith(
-          isLoading: false,
-        );
+        if (response.session != null) {
+          final profile = await _fetchProfile(response.user!.id);
+          state = state.copyWith(
+            user: profile,
+            isAuthenticated: true,
+            isLoading: false,
+          );
+        } else {
+          state = state.copyWith(
+            isLoading: false,
+            error: 'Please check your email to confirm your account.',
+          );
+        }
       } else {
         state = state.copyWith(isLoading: false, error: 'Registration failed.');
       }
