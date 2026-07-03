@@ -23,7 +23,7 @@ AI-powered resume builder Flutter application. Create professional resumes with 
 
 | Profile | AI Assistant | Dark Mode |
 |---------|-------------|-----------|
-| ![Profile](screenshots/profile.png) | ![AI Assistant](screenshots/ai.png) | ![Dark Mode](screenshots/dark_mode.png) |
+| ![Profile](screenshots/profile.png) | ![AI Assistant](screenshots/ai.png)
 
 ## Features
 
