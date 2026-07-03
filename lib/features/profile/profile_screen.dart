@@ -42,8 +42,7 @@ class ProfileScreen extends ConsumerWidget {
                   _buildSettingsTile(
                     icon: Icons.lock_outline,
                     title: 'Security',
-                    onTap: () {},
-                    showDivider: false,
+                    onTap: () => context.push('/security'),
                   ),
                 ]),
                 const Gap(24),
