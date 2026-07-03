@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS resumes (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   title TEXT NOT NULL DEFAULT 'Untitled Resume',
-  personal_info JSONB DEFAULT '{"fullName":"","email":"","phoneNumber":"","address":"","linkedIn":"","portfolioUrl":""}'::jsonb,
+  personal_info JSONB DEFAULT '{"fullName":"","email":"","phoneNumber":"","address":"","linkedIn":"","github":"","portfolioUrl":""}'::jsonb,
   summary TEXT DEFAULT '',
   education JSONB DEFAULT '[]'::jsonb,
   experience JSONB DEFAULT '[]'::jsonb,
@@ -140,3 +140,18 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Function to auto-update updated_at on resume changes
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to update updated_at on resumes
+DROP TRIGGER IF EXISTS on_resume_updated ON resumes;
+CREATE TRIGGER on_resume_updated
+  BEFORE UPDATE ON resumes
+  FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();

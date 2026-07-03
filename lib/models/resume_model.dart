@@ -11,6 +11,7 @@ class PersonalInfo {
   final String phoneNumber;
   final String? address;
   final String? linkedIn;
+  final String? github;
   final String? portfolioUrl;
 
   PersonalInfo({
@@ -19,6 +20,7 @@ class PersonalInfo {
     required this.phoneNumber,
     this.address,
     this.linkedIn,
+    this.github,
     this.portfolioUrl,
   });
 
@@ -28,6 +30,7 @@ class PersonalInfo {
     String? phoneNumber,
     String? address,
     String? linkedIn,
+    String? github,
     String? portfolioUrl,
   }) {
     return PersonalInfo(
@@ -36,6 +39,7 @@ class PersonalInfo {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       address: address ?? this.address,
       linkedIn: linkedIn ?? this.linkedIn,
+      github: github ?? this.github,
       portfolioUrl: portfolioUrl ?? this.portfolioUrl,
     );
   }
@@ -47,6 +51,7 @@ class PersonalInfo {
       'phoneNumber': phoneNumber,
       'address': address,
       'linkedIn': linkedIn,
+      'github': github,
       'portfolioUrl': portfolioUrl,
     };
   }
@@ -58,6 +63,7 @@ class PersonalInfo {
       phoneNumber: map['phoneNumber'] as String? ?? '',
       address: map['address'] as String?,
       linkedIn: map['linkedIn'] as String?,
+      github: map['github'] as String?,
       portfolioUrl: map['portfolioUrl'] as String?,
     );
   }
@@ -151,6 +157,8 @@ class ResumeModel {
       'languages': languages,
       'template_id': templateId ?? '',
       'ats_score': atsScore ?? 0,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
     };
   }
 

@@ -65,8 +65,7 @@ class ResumeNotifier extends StateNotifier<ResumeState> {
 
   Future<void> addResume(ResumeModel resume) async {
     if (_userId == null) {
-      state = state.copyWith(error: 'User not authenticated');
-      return;
+      throw Exception('User not authenticated');
     }
 
     state = state.copyWith(isLoading: true);
@@ -76,6 +75,7 @@ class ResumeNotifier extends StateNotifier<ResumeState> {
       state = state.copyWith(currentResume: resume);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
+      rethrow;
     }
   }
 
@@ -92,6 +92,7 @@ class ResumeNotifier extends StateNotifier<ResumeState> {
       }
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
+      rethrow;
     }
   }
 

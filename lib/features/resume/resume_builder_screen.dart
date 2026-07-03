@@ -92,6 +92,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
       _phoneController.text = existing.personalInfo.phoneNumber;
       _addressController.text = existing.personalInfo.address ?? '';
       _linkedinController.text = existing.personalInfo.linkedIn ?? '';
+      _githubController.text = existing.personalInfo.github ?? '';
       _portfolioController.text = existing.personalInfo.portfolioUrl ?? '';
       _summaryController.text = existing.summary;
       _educationList.addAll(existing.education);
@@ -132,8 +133,90 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
     super.dispose();
   }
 
+  void _autoAddCurrentStep() {
+    switch (_currentStep) {
+      case 2:
+        if (_schoolController.text.isNotEmpty &&
+            _degreeController.text.isNotEmpty &&
+            _majorController.text.isNotEmpty) {
+          setState(() {
+            _educationList.add(Education(
+              school: _schoolController.text,
+              degree: _degreeController.text,
+              major: _majorController.text,
+              gpa: double.tryParse(_gpaController.text),
+              graduationDate: _graduationDate,
+            ));
+            _schoolController.clear();
+            _degreeController.clear();
+            _majorController.clear();
+            _gpaController.clear();
+          });
+        }
+        break;
+      case 3:
+        if (_companyController.text.isNotEmpty &&
+            _positionController.text.isNotEmpty) {
+          setState(() {
+            _experienceList.add(Experience(
+              company: _companyController.text,
+              position: _positionController.text,
+              startDate: _expStartDate,
+              endDate: _expEndDate,
+              responsibilities: _responsibilitiesController.text
+                  .split('\n')
+                  .where((s) => s.trim().isNotEmpty)
+                  .toList(),
+            ));
+            _companyController.clear();
+            _positionController.clear();
+            _responsibilitiesController.clear();
+          });
+        }
+        break;
+      case 5:
+        if (_projectNameController.text.isNotEmpty &&
+            _projectDescController.text.isNotEmpty) {
+          setState(() {
+            _projectList.add(Project(
+              name: _projectNameController.text,
+              description: _projectDescController.text,
+              technologies: _projectTechController.text
+                  .split(',')
+                  .map((s) => s.trim())
+                  .where((s) => s.isNotEmpty)
+                  .toList(),
+              githubLink: _projectLinkController.text.isNotEmpty
+                  ? _projectLinkController.text
+                  : null,
+            ));
+            _projectNameController.clear();
+            _projectDescController.clear();
+            _projectTechController.clear();
+            _projectLinkController.clear();
+          });
+        }
+        break;
+      case 6:
+        if (_certNameController.text.isNotEmpty &&
+            _certOrgController.text.isNotEmpty) {
+          setState(() {
+            _certificateList.add(Certificate(
+              name: _certNameController.text,
+              organization: _certOrgController.text,
+              date: _certDate,
+            ));
+            _certNameController.clear();
+            _certOrgController.clear();
+          });
+        }
+        break;
+    }
+  }
+
   void _nextStep() {
     if (_currentStep < _stepLabels.length - 1) {
+      _autoAddCurrentStep();
       setState(() => _currentStep++);
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -171,6 +254,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
           phoneNumber: _phoneController.text,
           address: _addressController.text,
           linkedIn: _linkedinController.text,
+          github: _githubController.text,
           portfolioUrl: _portfolioController.text,
         ),
         summary: _summaryController.text,
@@ -198,6 +282,7 @@ class _ResumeBuilderScreenState extends ConsumerState<ResumeBuilderScreen> {
         context.push('/resume/template-selection', extra: resume);
       }
     } catch (e) {
+      debugPrint('=== SAVE ERROR: $e ===');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
