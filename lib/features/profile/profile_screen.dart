@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/auth_provider.dart';
@@ -128,12 +129,24 @@ class ProfileScreen extends ConsumerWidget {
                   _buildSettingsTile(
                     icon: Icons.star_outline,
                     title: 'Rate App',
-                    onTap: () {},
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Coming soon'),
+                          backgroundColor: AppColors.warning,
+                        ),
+                      );
+                    },
                   ),
                   _buildSettingsTile(
                     icon: Icons.share_outlined,
                     title: 'Share App',
-                    onTap: () {},
+                    onTap: () async {
+                      final uri = Uri.parse('https://matmood.netlify.app');
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
                   ),
                   _buildSettingsTile(
                     icon: Icons.info_outline,
@@ -145,6 +158,7 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     onTap: () {},
                     showDivider: false,
+                    enabled: false,
                   ),
                 ]),
                 const Gap(32),
@@ -269,57 +283,21 @@ class ProfileScreen extends ConsumerWidget {
     Widget? trailing,
     String? badge,
     Color? badgeColor,
+    Color? titleColor,
     bool showDivider = true,
+    bool enabled = true,
   }) {
     return Column(
       children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Icon(icon, size: 22, color: AppColors.textWhite),
-                const Gap(12),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(title, style: AppTextStyles.bodyMedium),
-                      if (badge != null) ...[
-                        const Gap(8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: (badgeColor ?? AppColors.primary).withAlpha(38),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            badge,
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: badgeColor ?? AppColors.primary,
-                              fontSize: 9,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                if (trailing != null)
-                  trailing
-                else
-                  Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                    color: AppColors.textGrey,
-                  ),
-              ],
-            ),
-          ),
+        Material(
+          color: Colors.transparent,
+          child: enabled
+              ? InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(12),
+                  child: _tileContent(icon, title, trailing, badge, badgeColor, titleColor),
+                )
+              : _tileContent(icon, title, trailing, badge, badgeColor, titleColor),
         ),
         if (showDivider)
           Divider(
@@ -329,6 +307,60 @@ class ProfileScreen extends ConsumerWidget {
             indent: 52,
           ),
       ],
+    );
+  }
+
+  Widget _tileContent(
+    IconData icon,
+    String title,
+    Widget? trailing,
+    String? badge,
+    Color? badgeColor,
+    Color? titleColor,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: titleColor ?? AppColors.textWhite),
+          const Gap(12),
+          Expanded(
+            child: Row(
+              children: [
+                Text(title, style: AppTextStyles.bodyMedium),
+                if (badge != null) ...[
+                  const Gap(8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: (badgeColor ?? AppColors.primary).withAlpha(38),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      badge,
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: badgeColor ?? AppColors.primary,
+                        fontSize: 9,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null)
+            trailing
+          else
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: AppColors.textGrey,
+            ),
+        ],
+      ),
     );
   }
 
